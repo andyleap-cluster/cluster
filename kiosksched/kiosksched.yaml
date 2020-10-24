@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    git.andyleap.dev/singress-target: kiosksched.andyleap.dev
+  name: kiosksched
+  namespace: kiosksched
+spec:
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: kiosksched
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kiosksched
+  namespace: kiosksched
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kiosksched
+  template:
+    metadata:
+      labels:
+        app: kiosksched
+    spec:
+      containers:
+      - env:
+        - name: MICHAEL
+          valueFrom:
+            secretKeyRef:
+              key: michael
+              name: calendars
+        - name: HOLLY
+          valueFrom:
+            secretKeyRef:
+              key: holly
+              name: calendars
+        - name: TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: token
+              name: token
+        image: andyleap/kiosksched
+        imagePullPolicy: Always
+        name: kiosksched
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
