@@ -21,6 +21,7 @@ metadata:
   name: gitserve
   namespace: gitserve
 spec:
+  revisionHistoryLimit: 5
   replicas: 1
   selector:
     matchLabels:
