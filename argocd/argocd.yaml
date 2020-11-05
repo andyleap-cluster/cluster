@@ -2372,6 +2372,8 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    git.andyleap.dev/singress-target: argocd.andyleap.dev
   labels:
     app.kubernetes.io/component: server
     app.kubernetes.io/name: argocd-server
