@@ -2569,6 +2569,7 @@ spec:
         - argocd-server
         - --staticassets
         - /shared/app
+        - --insecure
         image: argoproj/argocd:latest
         imagePullPolicy: Always
         name: argocd-server
