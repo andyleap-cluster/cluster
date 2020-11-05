@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lkedns
+  namespace: linode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lkedns
+  template:
+    metadata:
+      labels:
+        app: lkedns
+    spec:
+      containers:
+      - image: andyleap/lkedns
+        name: lkedns
+        env:
+        - name: LINODE_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: lkedns-api-token
+              key: token
