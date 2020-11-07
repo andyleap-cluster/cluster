@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: aqueduct
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: 'https://git.andyleap.dev/cluster'
+    path: aqueduct
+    targetRevision: master
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: aqueduct
+  syncPolicy:
+    automated:
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+
