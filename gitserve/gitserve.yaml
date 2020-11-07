@@ -45,7 +45,7 @@ spec:
               name: s3-api-token
         - name: S3_BUCKET
           value: andyleap-git
-        image: andyleap/gitserve:v0.1.0-3-g7f19357
+        image: andyleap/gitserve:v0.1.0-4-g41ad88c
         imagePullPolicy: Always
         name: gitserve
         ports:
