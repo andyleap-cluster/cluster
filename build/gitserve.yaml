@@ -46,8 +46,6 @@ spec:
       container:
         name: main
         image: gcr.io/kaniko-project/executor:latest
-        command:
-          - /argosay
         args:
           - "--dockerfile=Dockerfile"
           - "--context=git://git.andyleap.dev/gitserve#{{inputs.parameters.ref}}#{{inputs.parameters.commit}}"
