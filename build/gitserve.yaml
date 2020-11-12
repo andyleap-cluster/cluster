@@ -1,21 +1,65 @@
-apiVersion: v1
-kind: Pod
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowEventBinding
 metadata:
-  generateName: gitserve-
+  name: event-consumer
   namespace: build
 spec:
-  containers:
-  - name: kaniko
-    image: gcr.io/kaniko-project/executor:latest
-    args:
-    - "--dockerfile=Dockerfile"
-    - "--context=git://git.andyleap.dev/gitserve#refs/heads/master"
-    - "--destination=andyleap/gitserve"
-    volumeMounts:
-    - name: docker
-      mountPath: /kaniko/.docker/
-  restartPolicy: Never
-  volumes:
-  - name: docker
-    secret:
-      secretName: docker
+  event:
+    selector: payload.repo == "gitserve" && payload.commit != "" && payload.ref == "refs/heads/master" && discriminator == "git"
+  submit:
+    workflowTemplateRef:
+      name: gitserve-build
+    arguments:
+      parameters:
+      - name: commit
+        valueFrom:
+          event: payload.commit
+      - name: ref
+        valueFrom:
+          event: payload.ref
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: gitserve-build
+  namespace: build
+  labels:
+    build: gitserve
+spec:
+  workflowMetadata:
+    labels:
+      build: gitserve
+  entrypoint: build
+  arguments:
+    parameters:
+      - name: commit
+      - name: ref
+        value: "refs/heads/master"
+  templates:
+    - name: build
+      inputs:
+        parameters:
+          - name: commit
+            value: '{{workflow.parameters.commit}}'
+          - name: ref
+            value: '{{workflow.parameters.ref}}'
+      container:
+        name: main
+        image: gcr.io/kaniko-project/executor:latest
+        command:
+          - /argosay
+        args:
+          - "--dockerfile=Dockerfile"
+          - "--context=git://git.andyleap.dev/gitserve#{{inputs.parameters.ref}}#{{inputs.parameters.commit}}"
+          - "--destination=andyleap/gitserve:{{inputs.parameters.commit}}"
+        volumeMounts:
+          - name: docker
+            mountPath: /kaniko/.docker/
+      volumes:
+        - name: docker
+          secret:
+            secretName: docker
+  ttlStrategy:
+    secondsAfterCompletion: 3600
+  podGC:
+    strategy: OnPodCompletion
