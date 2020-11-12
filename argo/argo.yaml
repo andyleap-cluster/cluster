@@ -427,6 +427,7 @@ data:
       secretKeySecret:
         name: s3-api-token
         key: secret
+  containerRuntimeExecutor: docker
 ---
 apiVersion: v1
 kind: Service
