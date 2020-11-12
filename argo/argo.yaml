@@ -432,6 +432,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: argo-server
+  annotations:
+    git.andyleap.dev/singress-target: argo.andyleap.dev
 spec:
   ports:
   - name: web
@@ -469,6 +471,7 @@ spec:
       containers:
       - args:
         - server
+        - "--auth-mode=client"
         image: argoproj/argocli:v2.11.7
         name: argo-server
         ports:
