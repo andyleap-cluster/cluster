@@ -489,8 +489,6 @@ spec:
           name: tmp
       nodeSelector:
         kubernetes.io/os: linux
-      securityContext:
-        runAsNonRoot: true
       serviceAccountName: argo-server
       volumes:
       - emptyDir: {}
@@ -521,6 +519,4 @@ spec:
         name: workflow-controller
       nodeSelector:
         kubernetes.io/os: linux
-      securityContext:
-        runAsNonRoot: true
       serviceAccountName: argo
