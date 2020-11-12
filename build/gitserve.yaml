@@ -43,6 +43,11 @@ spec:
             value: '{{workflow.parameters.commit}}'
           - name: ref
             value: '{{workflow.parameters.ref}}'
+      outputs:
+        parameters:
+          - name: image
+            valueFrom:
+              path: /artifacts/image
       container:
         name: main
         image: gcr.io/kaniko-project/executor:latest
@@ -50,13 +55,18 @@ spec:
           - "--dockerfile=Dockerfile"
           - "--context=git://git.andyleap.dev/gitserve#{{inputs.parameters.ref}}#{{inputs.parameters.commit}}"
           - "--destination=andyleap/gitserve:{{inputs.parameters.commit}}"
+          - "--image-name-with-digest-file=/artifacts/image"
         volumeMounts:
           - name: docker
             mountPath: /kaniko/.docker/
+          - name: artifacts
+            mountPath: /artifacts/
       volumes:
         - name: docker
           secret:
             secretName: docker
+        - name: artifacts
+          emptyDir: { }
   ttlStrategy:
     secondsAfterCompletion: 3600
   podGC:
