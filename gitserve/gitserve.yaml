@@ -47,7 +47,7 @@ spec:
           value: andyleap-git
         args:
         - "--watchy=http://watchy.events:8080/git"
-        image: andyleap/gitserve:v0.1.0-15-g90f0e91
+        image: andyleap/gitserve:v0.1.0-16-g0ed8bc9
         imagePullPolicy: Always
         name: gitserve
         ports:
