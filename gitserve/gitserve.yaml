@@ -45,7 +45,9 @@ spec:
               name: s3-api-token
         - name: S3_BUCKET
           value: andyleap-git
-        image: andyleap/gitserve:v0.1.0-12-g9ededaf
+        args:
+        - "--watchy=http://watchy.events:8080/git"
+        image: andyleap/gitserve:v0.1.0-14-g25fd145
         imagePullPolicy: Always
         name: gitserve
         ports:
