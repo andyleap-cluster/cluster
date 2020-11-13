@@ -4,19 +4,26 @@ metadata:
   name: trigger-role
   namespace: build
 rules:
-- apiGroups:
-  - argoproj.io
-  resources:
-  - workflows
-  verbs:
-  - create
-- apiGroups:
-  - argoproj.io
-  resources:
-  - workflowtemplates
-  verbs:
-  - get
-  - list
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - workfloweventbindings
+    verbs:
+      - list
+      - get
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - workflowtemplates
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - workflows
+    verbs:
+      - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -27,6 +34,7 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: trigger-role
+  namespace: build
 subjects:
 - kind: ServiceAccount
   name: argo-trigger
