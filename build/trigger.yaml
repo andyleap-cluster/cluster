@@ -34,7 +34,6 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: trigger-role
-  namespace: build
 subjects:
 - kind: ServiceAccount
   name: argo-trigger
