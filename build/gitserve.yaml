@@ -5,7 +5,7 @@ metadata:
   namespace: build
 spec:
   event:
-    selector: payload.repo == "gitserve" && payload.commit != "" && payload.ref == "refs/heads/master" && discriminator == "git"
+    selector: payload.repo == "gitserve" && payload.commit != "" && payload.ref == "refs/heads/master" && discriminator == "gitserve"
   submit:
     workflowTemplateRef:
       name: gitserve-build
