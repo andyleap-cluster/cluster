@@ -47,6 +47,8 @@ spec:
           value: andyleap-git
         args:
         - "--watchy=http://watchy.events:8080/git"
+        - "--argo=http://argo-server.argo:2746/api/v1/events/build/gitserve"
+        - "--argo-token=/mnt/secrets/trigger-token/token"
         image: andyleap/gitserve:v0.1.0-17-g0e1f592
         imagePullPolicy: Always
         name: gitserve
@@ -54,3 +56,10 @@ spec:
         - containerPort: 8080
           name: http
           protocol: TCP
+        volumeMounts:
+        - name: trigger-token
+          mountPath: /mnt/secrets/trigger-token/
+      volumes:
+      - name: trigger-token
+        secret:
+          secretName: argo-trigger
