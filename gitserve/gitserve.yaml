@@ -49,7 +49,7 @@ spec:
         - "--watchy=http://watchy.events:8080/git"
         - "--argo=http://argo-server.argo:2746/api/v1/events/build/gitserve"
         - "--argo-token=/mnt/secrets/trigger-token/token"
-        image: andyleap/gitserve:v0.1.0-17-g0e1f592
+        image: andyleap/gitserve:v0.1.0-18-g7f805d0
         imagePullPolicy: Always
         name: gitserve
         ports:
