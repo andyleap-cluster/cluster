@@ -3,5 +3,3 @@ kind: ServiceAccount
 metadata:
   name: argo-trigger
   namespace: gitserve
-secrets:
-  - name: argo-trigger-token
