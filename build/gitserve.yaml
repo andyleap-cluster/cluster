@@ -61,7 +61,7 @@ spec:
             - name: file
               value: gitserve/gitserve.image
             - name: message
-              value: updating gitserve
+              value: updating+gitserve
     - name: build
       inputs:
         parameters:
@@ -101,7 +101,7 @@ spec:
         - name: file
         - name: branch
         - name: message
-          value: update image
+          value: update
       container:
         name: main
         image: alpine
