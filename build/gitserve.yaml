@@ -36,13 +36,38 @@ spec:
       - name: ref
         value: "refs/heads/master"
   templates:
+    - name: build-and-deploy
+      dag: 
+        tasks:
+        - name: build
+          template: build
+          arguments:
+            parameters:
+            - name: commit
+              value: '{{workflow.parameters.commit}}'
+            - name: ref
+              value: '{{workflow.parameters.ref}}'
+        - name: deploy
+          template: deploy
+          arguments:
+            parameters:
+            - name: digest
+              value: '{{tasks.build.outputs.parameters.image}}'
+            - name: repo
+              value: https://git.andyleap.dev/cluster
+            - name: branch
+              value: master
+            - name: file
+              value: gitserve/gitserve.image
+            - name: message
+              value: updating gitserve
     - name: build
       inputs:
         parameters:
           - name: commit
-            value: '{{workflow.parameters.commit}}'
+            value: ''
           - name: ref
-            value: '{{workflow.parameters.ref}}'
+            value: ''
       outputs:
         parameters:
           - name: image
@@ -67,6 +92,22 @@ spec:
             secretName: docker
         - name: artifacts
           emptyDir: { }
+    - name: deploy
+      inputs:
+        parameters:
+        - name: digest
+        - name: repo
+        - name: file
+        - name: branch
+        - name: message
+          value: update image
+      container:
+        name: main
+        image: alpine
+        command: ["wget"]
+        args:
+        - "-O=-"
+        - "http://gitupdate.gitserve:8080/set/repo={{inputs.parameters.repo}}&file={{inputs.parameters.file}}&branch={{inputs.parameters.branch}}&file={{inputs.parameters.file}}&data={{inputs.parameters.digest}}"
   ttlStrategy:
     secondsAfterCompletion: 3600
   podGC:
