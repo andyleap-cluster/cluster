@@ -1,0 +1,51 @@
+local utils = import "common/utils.libsonnet";
+
+local spec = {
+    name:: error "NAME REQUIRED",
+    namespace:: std.extVar("namespace"),
+    pod:: error "POD SPEC REQUIRED",
+    replicas:: 1,
+    selector:: {
+        role: $.name,
+    },
+    podLabels:: $.selector,
+    maxUnavailable:: 1,
+    maxSurge:: 0,
+
+    local spec = self,
+    output:: {
+        apiVersion: "apps/v1",
+        kind: "Deployment",
+        metadata: {
+            name: spec.name,
+            namespace: spec.namespace,
+            annotations: {
+                owner: spec.owner,
+            },
+        },
+        spec: {
+            replicas: spec.replicas,
+            selector: {
+                matchLabels: spec.selector,
+            },
+            strategy: {
+                type: "RollingUpdate",
+                rollingUpdate: {
+                    maxSurge: spec.maxSurge,
+                    maxUnavailable: spec.maxUnavailable,
+                },
+            },
+            template: {
+                metadata: {
+                    labels: spec.podLabels,
+                    annotations: {
+                        owner: spec.owner,
+                    },
+                },
+                spec: spec.pod.output,
+            },
+        },
+    },
+};
+
+spec

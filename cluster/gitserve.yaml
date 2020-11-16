@@ -11,6 +11,11 @@ spec:
     repoURL: 'https://git.andyleap.dev/cluster'
     path: gitserve
     targetRevision: master
+    directory:
+      jsonnet:
+        extVars:
+        - name: namespace
+          value: $ARGOCD_APP_NAMESPACE
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: gitserve
@@ -19,4 +24,3 @@ spec:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
-
