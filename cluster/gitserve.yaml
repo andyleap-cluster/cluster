@@ -16,8 +16,6 @@ spec:
         extVars:
         - name: namespace
           value: ${ARGOCD_APP_NAMESPACE}
-        - name: gitserve-image
-          value: andyleap/gitserve:latest
         libs:
         - libs
   destination:
