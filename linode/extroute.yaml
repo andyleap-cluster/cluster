@@ -20,6 +20,7 @@ spec:
         - "--route=80>singress:80"
         - "--route=443>singress:443"
         - "--route=6476>scanner.aqueduct:6476"
+        - "--route=2200>sshsweeper.sshsweeper:2200"
         ports:
           - containerPort: 80
             name: http
