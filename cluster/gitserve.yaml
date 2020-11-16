@@ -16,6 +16,8 @@ spec:
         extVars:
         - name: namespace
           value: $ARGOCD_APP_NAMESPACE
+        libs:
+        - libs
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: gitserve
