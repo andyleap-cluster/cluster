@@ -32,5 +32,5 @@ spec:
             name: aqueduct
             hostPort: 6476
           - containerPort: 2200
-            name: aqueduct
+            name: sshsweeper
             hostPort: 2200
