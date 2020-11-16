@@ -6,7 +6,7 @@ local spec = {
     pod:: error "POD SPEC REQUIRED",
     replicas:: 1,
     selector:: {
-        role: $.name,
+        app: $.name,
     },
     podLabels:: $.selector,
     maxUnavailable:: 1,
@@ -25,6 +25,7 @@ local spec = {
             selector: {
                 matchLabels: spec.selector,
             },
+            revisionHistoryLimit: 5,
             strategy: {
                 type: "RollingUpdate",
                 rollingUpdate: {

@@ -2,6 +2,7 @@ local deployment = import "common/deployment.libsonnet";
 local pod = import "common/pod.libsonnet";
 local container = import "common/container.libsonnet";
 local volumes = import "common/volumes.libsonnet";
+local env = import "common/env.libsonnet";
 local service = import "common/service.libsonnet";
 
 local c = container {
@@ -10,6 +11,11 @@ local c = container {
         "--argo=http://argo-server.argo:2746/api/v1/events/build/gitserve",
         "--argo-token=/mnt/secrets/trigger-token/token",
     ],
+    env: {
+        "S3_KEY": env.secret("s3-api-token", "key"),
+        "S3_SECRET": env.secret("s3-api-token", "secret"),
+        "S3_BUCKET": "andyleap-git",
+    },
     image: std.extVar("gitserve-image"),
     ports: {
         "http": "8080",
@@ -37,7 +43,10 @@ local s = service {
     name: "gitserve",
     selector: d.selector,
     ports: {
-        "8080": "8080",
+        http: {
+            port: 8080,
+            targetPort: "http",
+        },
     },
 };
 
