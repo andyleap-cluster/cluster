@@ -19,9 +19,6 @@ local spec = {
         metadata: {
             name: spec.name,
             namespace: spec.namespace,
-            annotations: {
-                owner: spec.owner,
-            },
         },
         spec: {
             replicas: spec.replicas,
@@ -38,9 +35,6 @@ local spec = {
             template: {
                 metadata: {
                     labels: spec.podLabels,
-                    annotations: {
-                        owner: spec.owner,
-                    },
                 },
                 spec: spec.pod.output,
             },

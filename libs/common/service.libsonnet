@@ -1,20 +1,20 @@
 local utils = import "common/utils.libsonnet";
 
 local spec = {
-    name: error "NAME REQUIRED",
-    namespace: std.extVar("namespace"),
+    name:: error "NAME REQUIRED",
+    namespace:: std.extVar("namespace"),
 
-    type: "ClusterIP",
-    clusterIP: null,
-    externalTrafficPolicy: null,
-    loadBalancerIP: null,
+    type:: "ClusterIP",
+    clusterIP:: null,
+    externalTrafficPolicy:: null,
+    loadBalancerIP:: null,
     assert ($.loadBalancerIP == null) || ($.type == "LoadBalancer") : "LOADBALANCERIP CANNOT BE SET FOR NON LOADBALANCER",
 
-    ports: {},
+    ports:: {},
 
-    selector: {},
+    selector:: {},
 
-    output: {
+    output:: {
         apiVersion: "v1",
         kind: "Service",
         metadata: {
