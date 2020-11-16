@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowEventBinding
 metadata:
-  name: gitupdate-event-consumer
+  name: sshsweeper-event-consumer
   namespace: build
 spec:
   event:
-    selector: payload.repo == "gitupdate" && payload.commit != "" && payload.ref == "refs/heads/master" && discriminator == "gitserve"
+    selector: payload.repo == "sshsweeper" && payload.commit != "" && payload.ref == "refs/heads/master" && discriminator == "gitserve"
   submit:
     workflowTemplateRef:
-      name: gitupdate-build
+      name: sshsweeper-build
     arguments:
       parameters:
       - name: commit
@@ -21,14 +21,14 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: gitupdate-build
+  name: sshsweeper-build
   namespace: build
   labels:
-    build: gitupdate
+    build: sshsweeper
 spec:
   workflowMetadata:
     labels:
-      build: gitupdate
+      build: sshsweeper
   entrypoint: build-and-deploy
   arguments:
     parameters:
@@ -59,9 +59,9 @@ spec:
             - name: branch
               value: master
             - name: file
-              value: gitserve/gitupdate.image
+              value: sshsweeper/sshsweeper.image
             - name: message
-              value: updating+gitupdate
+              value: updating+sshsweeper
     - name: build
       inputs:
         parameters:
@@ -79,8 +79,8 @@ spec:
         image: gcr.io/kaniko-project/executor:latest
         args:
           - "--dockerfile=Dockerfile"
-          - "--context=git://git.andyleap.dev/gitupdate#{{inputs.parameters.ref}}#{{inputs.parameters.commit}}"
-          - "--destination=andyleap/gitupdate:{{inputs.parameters.commit}}"
+          - "--context=git://git.andyleap.dev/sshsweeper#{{inputs.parameters.ref}}#{{inputs.parameters.commit}}"
+          - "--destination=andyleap/sshsweeper:{{inputs.parameters.commit}}"
           - "--image-name-with-digest-file=/artifacts/image"
         volumeMounts:
           - name: docker
