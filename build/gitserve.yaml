@@ -49,6 +49,7 @@ spec:
               value: '{{workflow.parameters.ref}}'
         - name: deploy
           template: deploy
+          dependencies: build
           arguments:
             parameters:
             - name: digest
