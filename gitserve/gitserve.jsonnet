@@ -16,7 +16,7 @@ local c = container {
         "S3_SECRET": env.secret("s3-api-token", "secret"),
         "S3_BUCKET": "andyleap-git",
     },
-    image: std.extVar("gitserve-image"),
+    image: importstr "gitserve.image",
     ports: {
         http: 8080,
     },
