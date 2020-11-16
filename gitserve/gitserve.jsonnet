@@ -37,6 +37,8 @@ local p = pod {
 local d = deployment {
     name: "gitserve",
     pod: p,
+    maxUnavailable: 0,
+    maxSurge: 1,
 };
 
 local s = service {
