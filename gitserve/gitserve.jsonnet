@@ -18,10 +18,10 @@ local c = container {
     },
     image: std.extVar("gitserve-image"),
     ports: {
-        "http": "8080",
+        http: 8080,
     },
     volumeMounts: {
-        "/mnt/secrets/trigger-token": "trigger-token",
+        "/mnt/secrets/trigger-token/": "trigger-token",
     },
 };
 
