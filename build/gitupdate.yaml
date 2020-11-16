@@ -59,7 +59,7 @@ spec:
             - name: branch
               value: master
             - name: file
-              value: gitupdate/gitupdate.image
+              value: gitserve/gitupdate.image
             - name: message
               value: updating+gitupdate
     - name: build
