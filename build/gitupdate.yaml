@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowEventBinding
 metadata:
-  name: event-consume
+  name: gitupdate-event-consume
   namespace: build
 spec:
   event:

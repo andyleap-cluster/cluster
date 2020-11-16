@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowEventBinding
 metadata:
-  name: event-consumer
+  name: gitserve-event-consumer
   namespace: build
 spec:
   event:
