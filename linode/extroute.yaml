@@ -31,3 +31,6 @@ spec:
           - containerPort: 6476
             name: aqueduct
             hostPort: 6476
+          - containerPort: 2200
+            name: aqueduct
+            hostPort: 2200
