@@ -3,6 +3,7 @@ local utils = import "common/utils.libsonnet";
 local spec = {
     name:: error "NAME REQUIRED",
     namespace:: std.extVar("namespace"),
+    annotations:: null,
 
     type:: "ClusterIP",
     clusterIP:: null,
@@ -21,6 +22,7 @@ local spec = {
         metadata: {
             name: spec.name,
             namespace: spec.namespace,
+            [utils.optional(spec, "annotations")]: spec.annotations,
         },
         spec: {
             type: spec.type,

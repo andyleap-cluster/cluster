@@ -43,6 +43,9 @@ local d = deployment {
 
 local s = service {
     name: "gitserve",
+    annotations: {
+        "git.andyleap.dev/singress-target": "git.andyleap.dev",
+    },
     selector: d.selector,
     ports: {
         http: {
