@@ -29,7 +29,7 @@ spec:
   workflowMetadata:
     labels:
       build: gitserve
-  entrypoint: build
+  entrypoint: build-and-deploy
   arguments:
     parameters:
       - name: commit
