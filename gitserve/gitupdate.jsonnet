@@ -15,7 +15,7 @@ local c = container {
         http: 8080,
     },
     volumeMounts: {
-        "/mnt/secrets/gitupdate/": "gitupdate",
+        "/mnt/secret/gitupdate/": "gitupdate",
     },
 };
 
