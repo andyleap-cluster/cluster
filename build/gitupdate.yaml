@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowEventBinding
 metadata:
-  name: event-consumer
+  name: event-consume
   namespace: build
 spec:
   event:
-    selector: payload.repo == "gitserve" && payload.commit != "" && payload.ref == "refs/heads/master" && discriminator == "gitserve"
+    selector: payload.repo == "gitupdate" && payload.commit != "" && payload.ref == "refs/heads/master" && discriminator == "gitupdate"
   submit:
     workflowTemplateRef:
-      name: gitserve-build
+      name: gitupdate-build
     arguments:
       parameters:
       - name: commit
@@ -21,14 +21,14 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: gitserve-build
+  name: gitupdate-build
   namespace: build
   labels:
-    build: gitserve
+    build: gitupdate
 spec:
   workflowMetadata:
     labels:
-      build: gitserve
+      build: gitupdate
   entrypoint: build-and-deploy
   arguments:
     parameters:
@@ -59,9 +59,9 @@ spec:
             - name: branch
               value: master
             - name: file
-              value: gitserve/gitserve.image
+              value: gitupdate/gitupdate.image
             - name: message
-              value: updating+gitserve
+              value: updating+gitupdate
     - name: build
       inputs:
         parameters:
@@ -79,8 +79,8 @@ spec:
         image: gcr.io/kaniko-project/executor:latest
         args:
           - "--dockerfile=Dockerfile"
-          - "--context=git://git.andyleap.dev/gitserve#{{inputs.parameters.ref}}#{{inputs.parameters.commit}}"
-          - "--destination=andyleap/gitserve:{{inputs.parameters.commit}}"
+          - "--context=git://git.andyleap.dev/gitupdate#{{inputs.parameters.ref}}#{{inputs.parameters.commit}}"
+          - "--destination=andyleap/gitupdate:{{inputs.parameters.commit}}"
           - "--image-name-with-digest-file=/artifacts/image"
         volumeMounts:
           - name: docker
@@ -108,7 +108,7 @@ spec:
         command: ["wget"]
         args:
         - "-O=-"
-        - "http://gitupdate.gitserve:8080/set?repo={{inputs.parameters.repo}}&file={{inputs.parameters.file}}&branch={{inputs.parameters.branch}}&message={{inputs.parameters.message}}&data={{inputs.parameters.digest}}"
+        - "http://gitupdate.gitupdate:8080/set?repo={{inputs.parameters.repo}}&file={{inputs.parameters.file}}&branch={{inputs.parameters.branch}}&message={{inputs.parameters.message}}&data={{inputs.parameters.digest}}"
   ttlStrategy:
     secondsAfterCompletion: 3600
   podGC:
