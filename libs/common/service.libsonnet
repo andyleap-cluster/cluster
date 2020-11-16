@@ -14,6 +14,7 @@ local spec = {
 
     selector:: {},
 
+    local spec=self,
     output:: {
         apiVersion: "v1",
         kind: "Service",

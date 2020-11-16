@@ -41,4 +41,4 @@ local s = service {
     },
 };
 
-std.manifestYamlStream([d.output, s.output])
+[d.output, s.output]
