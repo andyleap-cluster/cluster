@@ -108,7 +108,7 @@ spec:
         command: ["wget"]
         args:
         - "-O=-"
-        - "http://gitupdate.gitupdate:8080/set?repo={{inputs.parameters.repo}}&file={{inputs.parameters.file}}&branch={{inputs.parameters.branch}}&message={{inputs.parameters.message}}&data={{inputs.parameters.digest}}"
+        - "http://gitupdate.gitserve:8080/set?repo={{inputs.parameters.repo}}&file={{inputs.parameters.file}}&branch={{inputs.parameters.branch}}&message={{inputs.parameters.message}}&data={{inputs.parameters.digest}}"
   ttlStrategy:
     secondsAfterCompletion: 3600
   podGC:
