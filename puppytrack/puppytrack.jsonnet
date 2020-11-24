@@ -6,8 +6,6 @@ local env = import "common/env.libsonnet";
 local service = import "common/service.libsonnet";
 
 local c = container {
-    args: [
-    ],
     env: {
         "S3_KEY": env.secret("s3-api-token", "key"),
         "S3_SECRET": env.secret("s3-api-token", "secret"),
@@ -17,17 +15,11 @@ local c = container {
     ports: {
         http: 8080,
     },
-    volumeMounts: {
-        "/mnt/secrets/trigger-token/": "trigger-token",
-    },
 };
 
 local p = pod {
     containers: {
         "puppytrack": c,
-    },
-    volumes: {
-        "trigger-token": volumes.secret("argo-trigger"),
     },
 };
 
