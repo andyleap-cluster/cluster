@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: static
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: 'https://git.andyleap.dev/cluster'
+    path: static
+    targetRevision: master
+    directory:
+      jsonnet:
+        extVars:
+        - name: namespace
+          value: ${ARGOCD_APP_NAMESPACE}
+        libs:
+        - libs
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: static
+  syncPolicy:
+    automated:
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
