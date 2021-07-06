@@ -59,13 +59,13 @@ spec:
         app: singress
     spec:
       containers:
-      - image: ghcr.io/andyleap-cluster/singress@sha256:877ce0b4df6c89994cba5bd3bb575beb35d43bf10431570fbca076e80397ba68
+      - image: ghcr.io/andyleap-cluster/singress@sha256:742df6753e2c70957f46af81da60a2387f39292ff19e3e725d53205493ade979
         name: singress
         env:
         - name: S3_DOMAIN
           value: us-east-1.linodeobjects.com
         - name: S3_BUCKET
-          value: andyleap-tls
+          value: andyleap-dev-tls
         - name: S3_KEY
           valueFrom:
             secretKeyRef:
