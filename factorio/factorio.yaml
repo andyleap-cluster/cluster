@@ -1,0 +1,65 @@
+apiVersion: apps/v1beta2
+kind: StatefulSet
+metadata:
+  name: factorio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: factorio
+  template:
+    metadata:
+      labels:
+        app: factorio
+    spec:
+      containers:
+        - name: factorio
+          image: factoriotools/factorio:1.1.57
+          imagePullPolicy: Always
+          ports:
+            - name: factorio-udp
+              containerPort: 34197
+              protocol: UDP
+            - name: factorio-tcp
+              containerPort: 27015
+              protocol: TCP
+          volumeMounts:
+            - name: factorio-data
+              mountPath: /factorio
+          securityContext:
+            runAsUser: 0
+      volumes:
+        - name: factorio-data
+          persistentVolumeClaim:
+            claimName: factorio-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: factorio-data
+  labels:
+    app: factorio
+spec:
+  storageClassName: linode-block-storage-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "10Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: factorio
+spec:
+  selector:
+    app: factorio
+  ports:
+  - name: game
+    port: 34197
+    targetPort: 34197
+    protocol: UDP
+  - name: rcon
+    port: 27015
+    targetPort: 27015
+    protocol: TCP

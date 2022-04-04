@@ -21,6 +21,8 @@ spec:
         - "--route=443>singress:443"
         - "--route=6476>scanner.aqueduct:6476"
         - "--route=2200>sshsweeper.sshsweeper:2200"
+        - "--route=34197>sshsweeper.sshsweeper:34197"
+        - "--route=27015>sshsweeper.sshsweeper:27015"
         ports:
           - containerPort: 80
             name: http
