@@ -2428,7 +2428,7 @@ spec:
     spec:
       containers:
       - command:
-        - /shared/argocd-util
+        - /shared/argocd-dex
         - rundex
         image: quay.io/dexidp/dex:v2.25.0
         imagePullPolicy: Always
@@ -2444,8 +2444,8 @@ spec:
       - command:
         - cp
         - -n
-        - /usr/local/bin/argocd-util
-        - /shared
+        - /usr/local/bin/argocd
+        - /shared/argocd-dex
         image: argoproj/argocd:latest
         imagePullPolicy: Always
         name: copyutil
