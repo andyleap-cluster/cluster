@@ -50,49 +50,11 @@ apiVersion: v1
 kind: Service
 metadata:
   name: vscode
-spec:
-  selector:
-    app: vscode
-  ports:
-  - name: http
-    port: 8080
-    targetPort: 8080
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: vscodepublic
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: vscodepublic
-  template:
-    metadata:
-      labels:
-        app: vscodepublic
-    spec:
-      containers:
-      - image: andyleap/tokenauth
-        imagePullPolicy: Always
-        name: aqueduct
-        args:
-        - "./tokenauth"
-        - "--token=sedxzawscfvxdcnjmbhn"
-        - "--host=http://vscode:8080/"
-        ports:
-        - containerPort: 8080
-          name: http
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: vscodepublic
   annotations:
     "git.andyleap.dev/singress-target": "vscode.andyleap.dev"
 spec:
   selector:
-    app: vscodepublic
+    app: vscode
   ports:
   - name: http
     port: 8080
