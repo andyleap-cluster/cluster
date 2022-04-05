@@ -29,6 +29,11 @@ spec:
               mountPath: /factorio
           securityContext:
             runAsUser: 0
+          env:
+            - name: SAVE_NAME
+              value: Mixpanel
+            - name: LOAD_LATEST_SAVE
+              value: "false"
       volumes:
         - name: factorio-data
           persistentVolumeClaim:
