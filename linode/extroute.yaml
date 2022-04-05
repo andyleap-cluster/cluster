@@ -13,7 +13,7 @@ spec:
         app: extroute
     spec:
       containers:
-      - image: ghcr.io/andyleap-cluster/extroute:commit-bf068fa2242a92dd752511fd6c3914a7af270dbb
+      - image: ghcr.io/andyleap-cluster/extroute:commit-e11d6ae513f191f1ce6c40593ee2896ce9792615
         name: extroute
         args:
         - "./main"
