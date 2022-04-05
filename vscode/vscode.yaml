@@ -13,6 +13,10 @@ spec:
       labels:
         app: vscode
     spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       containers:
         - name: vscode
           image: codercom/code-server:4.2.0
@@ -23,10 +27,6 @@ spec:
           volumeMounts:
             - name: vscode-data
               mountPath: /home/coder
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 1000
-            fsGroup: 1000
       volumes:
         - name: vscode-data
           persistentVolumeClaim:
