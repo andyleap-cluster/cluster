@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vscode
+spec:
+  serviceName: vscode
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vscode
+  template:
+    metadata:
+      labels:
+        app: vscode
+    spec:
+      containers:
+        - name: vscode
+          image: codercom/code-server:4.2.0
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+          volumeMounts:
+            - name: vscode-data
+              mountPath: /vscode
+          securityContext:
+            runAsUser: 0
+      volumes:
+        - name: vscode-data
+          persistentVolumeClaim:
+            claimName: vscode-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vscode-data
+  labels:
+    app: vscode
+spec:
+  storageClassName: linode-block-storage-retain
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "10Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vscode
+spec:
+  selector:
+    app: vscode
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vscodepublic
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vscodepublic
+  template:
+    metadata:
+      labels:
+        app: vscodepublic
+    spec:
+      containers:
+      - image: andyleap/tokenauth
+        imagePullPolicy: Always
+        name: aqueduct
+        args:
+        - "./tokenauth"
+        - "--token=sedxzawscfvxdcnjmbhn"
+        - "--host=http://vscode:8080/"
+        ports:
+        - containerPort: 8080
+          name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vscodepublic
+  annotations:
+    "git.andyleap.dev/singress-target": "vscode.andyleap.dev"
+spec:
+  selector:
+    app: vscodepublic
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
