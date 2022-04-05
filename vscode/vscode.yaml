@@ -22,9 +22,9 @@ spec:
               containerPort: 8080
           volumeMounts:
             - name: vscode-data
-              mountPath: /vscode
+              mountPath: /home/coder
           securityContext:
-            runAsUser: 0
+            runAsUser: 1000
       volumes:
         - name: vscode-data
           persistentVolumeClaim:
