@@ -23,7 +23,7 @@ kind: Service
 metadata:
   name: pgadmin-service
   annotations:
-    "git.andyleap.dev/singress-target": "andyleap.dev"
+    "git.andyleap.dev/singress-target": "pgadmin.andyleap.dev"
 spec:
   ports:
   - protocol: TCP
