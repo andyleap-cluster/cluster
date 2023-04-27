@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://git.andyleap.dev/cluster'
+    repoURL: 'https://github.com/andyleap-cluster/cluster.git'
     path: cluster
     targetRevision: master
   destination:

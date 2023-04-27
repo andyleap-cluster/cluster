@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: static
+  name: vscode
   namespace: argocd
   finalizers:
   - resources-finalizer.argocd.argoproj.io
@@ -9,20 +9,14 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/andyleap-cluster/cluster.git'
-    path: static
+    path: vscode
     targetRevision: master
-    directory:
-      jsonnet:
-        extVars:
-        - name: namespace
-          value: ${ARGOCD_APP_NAMESPACE}
-        libs:
-        - libs
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: static
+    namespace: vscode
   syncPolicy:
     automated:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
+
