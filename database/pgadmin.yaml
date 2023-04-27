@@ -72,6 +72,8 @@ spec:
             - name: pgadmin-data
               mountPath: /var/lib/pgadmin
               subPath: pgadmin-data
+          securityContext:
+            runAsUser: 0
       volumes:
         - name: pgadmin-config
           configMap:
