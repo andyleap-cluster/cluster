@@ -19,10 +19,7 @@ spec:
         - "./main"
         - "--route=80>singress:80"
         - "--route=443>singress:443"
-        - "--route=6476>scanner.aqueduct:6476"
         - "--route=2200>sshsweeper.sshsweeper:2200"
-        - "--route=udp:34197>factorio.factorio:34197"
-        - "--route=27015>factorio.factorio:27015"
         ports:
           - containerPort: 80
             name: http
@@ -30,17 +27,7 @@ spec:
           - containerPort: 443
             name: https
             hostPort: 443
-          - containerPort: 6476
-            name: aqueduct
-            hostPort: 6476
           - containerPort: 2200
             name: sshsweeper
             hostPort: 2200
-          - containerPort: 34197
-            name: factorio
-            hostPort: 34197
-            protocol: UDP
-          - containerPort: 27015
-            name: factorio-rcon
-            hostPort: 27015
 
