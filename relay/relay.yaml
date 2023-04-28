@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: relay
-          image: ghcr.io/andyleap/nostr/relay:09b14093079fa923e18b23017c523b974c2be62a
+          image: ghcr.io/andyleap/nostr/relay:9bce3084378b897a9a547b625607adefbec5ebb2
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 8080
