@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: relay
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: relay
+  template:
+    metadata:
+      labels:
+        app: relay
+    spec:
+      containers:
+        - name: relay
+          image: ghcr.io/andyleap/nostr/relay:09b14093079fa923e18b23017c523b974c2be62a
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: relay-secret
+          env:
+            - name: PG_HOST
+              value: database.database
+            - name: PG_USER
+              value: relay
+            - name: PG_DB
+              value: relay
+            - name: PUB_KEYS
+              value: "555476a6ce63adc27bc5d124b7e6a37b3bc99aada8938f0261aa42098bda7580"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: relay
+  annotations:
+    "git.andyleap.dev/singress-target": "relay.andyleap.dev"
+spec:
+  selector:
+    app: relay
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
