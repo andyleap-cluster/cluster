@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: relay
 spec:
-  historyLimit: 1
+  revisionHistoryLimit: 0
   replicas: 1
   selector:
     matchLabels:
