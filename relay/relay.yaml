@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: relay
-          image: ghcr.io/andyleap/nostr/relay:364c362fb41eef1c1f0b2d0c81b4afba964f333e
+          image: ghcr.io/andyleap/nostr/relay:b24cb0ddb086e01a4eaa759dbfdf0d0cbebec140
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 8080
@@ -29,7 +29,7 @@ spec:
             - name: PG_DB
               value: relay
             - name: PUB_KEYS
-              value: "555476a6ce63adc27bc5d124b7e6a37b3bc99aada8938f0261aa42098bda7580"
+              value: "29af6f8a1edf223e0d7db3ab10e7bb1940de3b2ef2be223dec7780f5a8a14814"
 ---
 apiVersion: v1
 kind: Service
