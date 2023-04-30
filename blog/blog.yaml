@@ -39,4 +39,4 @@ spec:
           - name: PUB_KEY
             value: "29af6f8a1edf223e0d7db3ab10e7bb1940de3b2ef2be223dec7780f5a8a14814"
           - name: RELAY_URL
-            value: ws://relay.relay
+            value: ws://relay.relay:8080
