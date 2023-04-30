@@ -29,8 +29,13 @@ spec:
         app: blog
     spec:
       containers:
-      - image: andyleap/blog
+      - image: ghcr.io/andyleap/nostr-blog:8d744f411b1a15e9552a226f76a48e5fae94fb73
         name: blog
         ports:
           - containerPort: 8080
             name: http
+        env:
+          - name: PUB_KEY
+            value: "29af6f8a1edf223e0d7db3ab10e7bb1940de3b2ef2be223dec7780f5a8a14814"
+          - name: RELAY_URL
+            value: relay.relay
