@@ -19,6 +19,7 @@ metadata:
   name: blog
   namespace: blog
 spec:
+  revisionHistoryLimit: 0
   replicas: 1
   selector:
     matchLabels:
