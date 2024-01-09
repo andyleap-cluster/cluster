@@ -59,7 +59,7 @@ spec:
         app: singress
     spec:
       containers:
-      - image: ghcr.io/andyleap-cluster/singress@sha256:d72628c9a732c20e9c0ad9b73e037d1a905e19727a7bc93bf54161f0a4f6eaa3
+      - image: ghcr.io/andyleap-cluster/singress@sha256:01e02bd222b4d8ac9ab7e13c626519243c2d7c636e47d729053fcfa85d67c88f
         name: singress
         env:
         - name: S3_DOMAIN
