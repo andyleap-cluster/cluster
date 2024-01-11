@@ -54,4 +54,4 @@ spec:
           valueFrom:
             secretKeyRef:
               name: blog-pg
-              key: pg
+              key: PG
