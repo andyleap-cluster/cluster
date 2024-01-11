@@ -30,7 +30,7 @@ spec:
         app: blog
     spec:
       containers:
-      - image: ghcr.io/andyleap/blog@sha256:38ccc7abc6e349ab1962737dac45b991cad8b9852dda004160e340ee007e40f9
+      - image: ghcr.io/andyleap/blog@sha256:27d7da41bf9242c5df271e09cdb06274f617321a71024278b8bbca3d4429c501
         name: blog
         ports:
           - containerPort: 8080
