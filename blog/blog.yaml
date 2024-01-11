@@ -51,4 +51,7 @@ spec:
               name: s3-api-token
               key: secret
         - name: DATABASE_URL
-          value: "postgres://blog@database.database:5432/blog?sslmode=disable"
+          valueFrom:
+            secretKeyRef:
+              name: blog-pg
+              key: pg
