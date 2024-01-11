@@ -30,13 +30,25 @@ spec:
         app: blog
     spec:
       containers:
-      - image: ghcr.io/andyleap/nostr-blog:8d744f411b1a15e9552a226f76a48e5fae94fb73
+      - image: ghcr.io/andyleap/blog@sha256:46bcb3963da46a1294908d052d907c2588a19af21dac00d7b15161d1580625f0
         name: blog
         ports:
           - containerPort: 8080
             name: http
         env:
-          - name: PUB_KEY
-            value: "29af6f8a1edf223e0d7db3ab10e7bb1940de3b2ef2be223dec7780f5a8a14814"
-          - name: RELAY_URL
-            value: ws://relay.relay:8080
+        - name: S3_DOMAIN
+          value: us-east-1.linodeobjects.com
+        - name: S3_BUCKET
+          value: andyleap-dev
+        - name: S3_KEY
+          valueFrom:
+            secretKeyRef:
+              name: s3-api-token
+              key: key
+        - name: S3_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: s3-api-token
+              key: secret
+        - name: DATABASE_URL
+          value: "postgres://blog@database.database:5432/blog?sslmode=disable"
