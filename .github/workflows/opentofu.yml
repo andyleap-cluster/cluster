@@ -201,7 +201,7 @@ jobs:
       run: |
         # Download plan from Object Storage
         PLAN_KEY="plans/${GITHUB_SHA}-${{ github.run_id }}.tfplan"
-        linode-cli obj get andyleap-dev-tf $PLAN_KEY --file tfplan --cluster us-east-1
+        linode-cli obj get andyleap-dev-tf $PLAN_KEY tfplan --cluster us-east-1
         
         # Verify checksum
         DOWNLOADED_HASH=$(sha256sum tfplan | cut -d' ' -f1)
