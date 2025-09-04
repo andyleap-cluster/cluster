@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blog
+spec:
+  revisionHistoryLimit: 0
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blog
+  template:
+    metadata:
+      labels:
+        app: blog
+    spec:
+      containers:
+      - image: ghcr.io/andyleap/blog
+        name: blog
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: S3_DOMAIN
+          value: us-east-1.linodeobjects.com
+        - name: S3_BUCKET
+          value: andyleap-dev
+        - name: S3_KEY
+          valueFrom:
+            secretKeyRef:
+              name: s3-api-token
+              key: key
+        - name: S3_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: s3-api-token
+              key: secret
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: blog-pg
+              key: PG

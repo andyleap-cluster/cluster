@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: linode
+
+resources:
+- singress.yaml
+- extroute.yaml
+- lkedns.yaml
+
+images:
+- name: ghcr.io/andyleap-cluster/singress
+  digest: sha256:02882225530ecf0770e013e782e58d6a3bbdbbd3299575297517b28e69c8a073
+- name: ghcr.io/andyleap-cluster/extroute
+  newTag: commit-e11d6ae513f191f1ce6c40593ee2896ce9792615
+- name: andyleap/lkedns
+  newTag: latest
+
+commonLabels:
+  app.kubernetes.io/part-of: linode

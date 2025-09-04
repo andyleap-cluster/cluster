@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sshsweeper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sshsweeper
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  revisionHistoryLimit: 5
+  template:
+    metadata:
+      labels:
+        app: sshsweeper
+    spec:
+      containers:
+      - name: sshsweeper
+        image: index.docker.io/andyleap/sshsweeper
+        args:
+        - "--privkey=/mnt/secrets/privkey/id_rsa"
+        ports:
+        - name: ssh
+          containerPort: 2200
+        volumeMounts:
+        - name: privkey
+          mountPath: /mnt/secrets/privkey/
+      volumes:
+      - name: privkey
+        secret:
+          secretName: privkey

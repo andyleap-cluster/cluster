@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: argocd
+
+resources:
+# Using ArgoCD upstream Kustomize base
+- https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+# Add any custom patches or additional resources here
+patchesStrategicMerge: []
+
+commonLabels:
+  app.kubernetes.io/part-of: argocd

@@ -11,13 +11,6 @@ spec:
     repoURL: 'https://github.com/andyleap-cluster/cluster.git'
     path: sshsweeper
     targetRevision: master
-    directory:
-      jsonnet:
-        extVars:
-        - name: namespace
-          value: ${ARGOCD_APP_NAMESPACE}
-        libs:
-        - libs
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: sshsweeper
