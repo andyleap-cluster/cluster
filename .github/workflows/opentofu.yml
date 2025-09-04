@@ -118,7 +118,15 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
           const fs = require('fs');
-          const planOutput = fs.readFileSync('./terraform/plan-output.txt', 'utf8');
+          let planOutput = 'Plan output not available';
+          
+          try {
+            if (fs.existsSync('./terraform/plan-output.txt')) {
+              planOutput = fs.readFileSync('./terraform/plan-output.txt', 'utf8');
+            }
+          } catch (error) {
+            planOutput = `Error reading plan output: ${error.message}`;
+          }
           
           const output = `#### OpenTofu Initialization ⚙️\`${{ steps.init.outcome }}\`
           #### OpenTofu Validation 🤖\`${{ steps.validate.outcome }}\`
