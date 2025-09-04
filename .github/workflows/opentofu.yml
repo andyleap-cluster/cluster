@@ -98,6 +98,8 @@ jobs:
         echo "plan_key=$PLAN_KEY" >> $GITHUB_OUTPUT
       env:
         LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
+        LINODE_CLI_OBJ_ACCESS_KEY: ${{ secrets.LINODE_S3_ACCESS_KEY }}
+        LINODE_CLI_OBJ_SECRET_KEY: ${{ secrets.LINODE_S3_SECRET_KEY }}
         GITHUB_APP_ID: ${{ secrets.APP_ID }}
         GITHUB_APP_INSTALLATION_ID: ${{ secrets.APP_INSTALLATION_ID }}
         GITHUB_APP_PEM_FILE: ${{ secrets.APP_PRIVATE_KEY }}
@@ -214,6 +216,9 @@ jobs:
         fi
         
         echo "✅ Plan checksum verified: $DOWNLOADED_HASH"
+      env:
+        LINODE_CLI_OBJ_ACCESS_KEY: ${{ secrets.LINODE_S3_ACCESS_KEY }}
+        LINODE_CLI_OBJ_SECRET_KEY: ${{ secrets.LINODE_S3_SECRET_KEY }}
 
     - name: OpenTofu Apply
       run: tofu apply -auto-approve -input=false tfplan
