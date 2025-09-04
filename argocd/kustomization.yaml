@@ -7,6 +7,11 @@ resources:
 # Using ArgoCD upstream Kustomize base - pinned to v3.1.1
 - https://raw.githubusercontent.com/argoproj/argo-cd/v3.1.1/manifests/install.yaml
 
+configMapGenerator:
+- name: argocd-cmd-params-cm
+  literals:
+  - server.insecure=true
+
 patches:
 - target:
     kind: Service
