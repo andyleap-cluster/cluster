@@ -15,10 +15,9 @@ permissions:
   secrets: write
 
 jobs:
-  opentofu:
-    name: 'OpenTofu Plan and Apply'
+  plan:
+    name: 'OpenTofu Plan'
     runs-on: ubuntu-latest
-    environment: terraform
 
     defaults:
       run:
@@ -108,15 +107,51 @@ jobs:
       if: steps.plan.outcome == 'failure'
       run: exit 1
 
+  apply:
+    name: 'OpenTofu Apply'
+    runs-on: ubuntu-latest
+    environment: terraform
+    needs: plan
+    if: needs.plan.result == 'success'
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./terraform
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup OpenTofu
+      uses: opentofu/setup-opentofu@v1
+      with:
+        tofu_version: ~1.6
+
+    - name: Setup Kubeconfig
+      run: |
+        mkdir -p ~/.kube
+        echo "${{ secrets.KUBECONFIG_CONTENT }}" > ~/.kube/config
+        chmod 600 ~/.kube/config
+
+    - name: Configure AWS CLI for S3 backend
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.LINODE_S3_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.LINODE_S3_SECRET_KEY }}
+      run: |
+        echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
+        echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
+
+    - name: OpenTofu Init
+      run: tofu init
+
     - name: Download Plan Artifact
-      if: steps.plan.outcome == 'success'
       uses: actions/download-artifact@v4
       with:
         name: terraform-plan
         path: ./terraform/
 
     - name: OpenTofu Apply
-      if: steps.plan.outcome == 'success'
       run: tofu apply -auto-approve -input=false tfplan
       env:
         LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
