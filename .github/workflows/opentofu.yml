@@ -34,11 +34,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Setup GitHub App Key
-      run: |
-        echo "${{ secrets.APP_PRIVATE_KEY }}" > /tmp/github-app-key.pem
-        chmod 600 /tmp/github-app-key.pem
-
     - name: Setup OpenTofu
       uses: opentofu/setup-opentofu@v1
       with:
@@ -60,7 +55,7 @@ jobs:
 
     - name: Setup GitHub App Key
       run: |
-        echo "${{ secrets.APP_PRIVATE_KEY }}" > /tmp/github-app-key.pem
+        printf '%s\n' "${{ secrets.APP_PRIVATE_KEY }}" > /tmp/github-app-key.pem
         chmod 600 /tmp/github-app-key.pem
 
     - name: OpenTofu Init
@@ -190,7 +185,7 @@ jobs:
 
     - name: Setup GitHub App Key for Apply
       run: |
-        echo "${{ secrets.APP_PRIVATE_KEY }}" > /tmp/github-app-key.pem
+        printf '%s\n' "${{ secrets.APP_PRIVATE_KEY }}" > /tmp/github-app-key.pem
         chmod 600 /tmp/github-app-key.pem
 
     - name: Setup Linode CLI
