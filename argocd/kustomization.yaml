@@ -7,8 +7,11 @@ resources:
 # Using ArgoCD upstream Kustomize base - pinned to v3.1.1
 - https://raw.githubusercontent.com/argoproj/argo-cd/v3.1.1/manifests/install.yaml
 
-# Add any custom patches or additional resources here
-patchesStrategicMerge: []
-
-commonLabels:
-  app.kubernetes.io/part-of: argocd
+patches:
+- target:
+    kind: Service
+    name: argocd-server
+  patch: |-
+    - op: add
+      path: /metadata/annotations/git.andyleap.dev~1singress-target
+      value: argocd.andyleap.dev
