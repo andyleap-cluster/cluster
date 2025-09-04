@@ -13,6 +13,10 @@ permissions:
   id-token: write
   actions: write
 
+concurrency:
+  group: terraform-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   plan:
     name: 'OpenTofu Plan'
@@ -29,6 +33,11 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+
+    - name: Setup GitHub App Key
+      run: |
+        echo "${{ secrets.APP_PRIVATE_KEY }}" > /tmp/github-app-key.pem
+        chmod 600 /tmp/github-app-key.pem
 
     - name: Setup OpenTofu
       uses: opentofu/setup-opentofu@v1
@@ -81,7 +90,9 @@ jobs:
         echo "plan_key=$PLAN_KEY" >> $GITHUB_OUTPUT
       env:
         LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_APP_ID: ${{ secrets.APP_ID }}
+        GITHUB_APP_INSTALLATION_ID: ${{ secrets.APP_INSTALLATION_ID }}
+        GITHUB_APP_PEM_FILE: /tmp/github-app-key.pem
       continue-on-error: true
 
 
@@ -185,4 +196,6 @@ jobs:
       run: tofu apply -auto-approve -input=false tfplan
       env:
         LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_APP_ID: ${{ secrets.APP_ID }}
+        GITHUB_APP_INSTALLATION_ID: ${{ secrets.APP_INSTALLATION_ID }}
+        GITHUB_APP_PEM_FILE: /tmp/github-app-key.pem
