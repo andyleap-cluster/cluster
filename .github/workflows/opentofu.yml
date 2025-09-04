@@ -18,6 +18,9 @@ jobs:
   plan:
     name: 'OpenTofu Plan'
     runs-on: ubuntu-latest
+    outputs:
+      plan_hash: ${{ steps.plan.outputs.plan_hash }}
+      plan_key: ${{ steps.plan.outputs.plan_key }}
 
     defaults:
       run:
@@ -55,23 +58,33 @@ jobs:
       id: validate
       run: tofu validate -no-color
 
+    - name: Setup Linode CLI
+      uses: linode/action-linode-cli@v1
+      with:
+        token: ${{ secrets.LINODE_TOKEN }}
+
     - name: OpenTofu Plan
       id: plan
       run: |
         tofu plan -no-color -input=false -out=tfplan
-        tofu show -no-color tfplan > plan-output.txt
+        tofu show -no-color tfplan > plan-raw.txt
+        
+        # Post-process plan output to fix diff highlighting
+        sed -E 's/^(\s+)(\+|\-|\~)/\2\1/' plan-raw.txt > plan-output.txt
+        
+        # Generate checksum and upload plan to Object Storage
+        PLAN_HASH=$(sha256sum tfplan | cut -d' ' -f1)
+        PLAN_KEY="plans/${GITHUB_SHA}-${GITHUB_RUN_ID}.tfplan"
+        
+        linode-cli obj put tfplan andyleap-dev-tf/$PLAN_KEY
+        
+        echo "plan_hash=$PLAN_HASH" >> $GITHUB_OUTPUT
+        echo "plan_key=$PLAN_KEY" >> $GITHUB_OUTPUT
       env:
         LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       continue-on-error: true
 
-    - name: Upload Plan Artifact
-      if: steps.plan.outcome == 'success'
-      uses: actions/upload-artifact@v4
-      with:
-        name: terraform-plan
-        path: ./terraform/tfplan
-        retention-days: 5
 
     - name: Update Pull Request
       uses: actions/github-script@v7
@@ -88,7 +101,7 @@ jobs:
 
           <details><summary>Show Plan</summary>
 
-          \`\`\`hcl\n
+          \`\`\`diff\n
           ${planOutput}
           \`\`\`
 
@@ -142,14 +155,32 @@ jobs:
         echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
         echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
 
+    - name: Setup Linode CLI
+      uses: linode/action-linode-cli@v1
+      with:
+        token: ${{ secrets.LINODE_TOKEN }}
+
     - name: OpenTofu Init
       run: tofu init
 
-    - name: Download Plan Artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: terraform-plan
-        path: ./terraform/
+    - name: Download and Verify Plan
+      run: |
+        # Download plan from Object Storage
+        PLAN_KEY="plans/${GITHUB_SHA}-${{ github.run_id }}.tfplan"
+        linode-cli obj get andyleap-dev-tf $PLAN_KEY --file tfplan
+        
+        # Verify checksum
+        DOWNLOADED_HASH=$(sha256sum tfplan | cut -d' ' -f1)
+        EXPECTED_HASH="${{ needs.plan.outputs.plan_hash }}"
+        
+        if [ "$DOWNLOADED_HASH" != "$EXPECTED_HASH" ]; then
+          echo "❌ Plan checksum mismatch!"
+          echo "Expected: $EXPECTED_HASH"
+          echo "Downloaded: $DOWNLOADED_HASH"
+          exit 1
+        fi
+        
+        echo "✅ Plan checksum verified: $DOWNLOADED_HASH"
 
     - name: OpenTofu Apply
       run: tofu apply -auto-approve -input=false tfplan
