@@ -92,7 +92,7 @@ jobs:
         PLAN_HASH=$(sha256sum tfplan | cut -d' ' -f1)
         PLAN_KEY="plans/${GITHUB_SHA}-${GITHUB_RUN_ID}.tfplan"
         
-        linode-cli obj put tfplan andyleap-dev-tf/$PLAN_KEY
+        linode-cli obj put tfplan andyleap-dev-tf/$PLAN_KEY --cluster us-east
         
         echo "plan_hash=$PLAN_HASH" >> $GITHUB_OUTPUT
         echo "plan_key=$PLAN_KEY" >> $GITHUB_OUTPUT
@@ -103,12 +103,11 @@ jobs:
         GITHUB_APP_ID: ${{ secrets.APP_ID }}
         GITHUB_APP_INSTALLATION_ID: ${{ secrets.APP_INSTALLATION_ID }}
         GITHUB_APP_PEM_FILE: ${{ secrets.APP_PRIVATE_KEY }}
-      continue-on-error: true
 
 
     - name: Update Pull Request
       uses: actions/github-script@v7
-      if: github.event_name == 'pull_request'
+      if: always() && github.event_name == 'pull_request'
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
@@ -202,7 +201,7 @@ jobs:
       run: |
         # Download plan from Object Storage
         PLAN_KEY="plans/${GITHUB_SHA}-${{ github.run_id }}.tfplan"
-        linode-cli obj get andyleap-dev-tf $PLAN_KEY --file tfplan
+        linode-cli obj get andyleap-dev-tf $PLAN_KEY --file tfplan --cluster us-east
         
         # Verify checksum
         DOWNLOADED_HASH=$(sha256sum tfplan | cut -d' ' -f1)
