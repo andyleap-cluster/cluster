@@ -111,7 +111,16 @@ jobs:
         PLAN_HASH=$(sha256sum tfplan | cut -d' ' -f1)
         PLAN_KEY="plans/${GITHUB_SHA}-${GITHUB_RUN_ID}.tfplan"
         
-        linode-cli obj put tfplan andyleap-dev-tf/$PLAN_KEY --cluster us-east-1
+        echo "📤 Uploading plan to Object Storage..."
+        echo "Plan key: $PLAN_KEY"
+        echo "Plan hash: $PLAN_HASH"
+        
+        if linode-cli obj put tfplan andyleap-dev-tf/$PLAN_KEY --cluster us-east-1; then
+          echo "✅ Plan uploaded successfully"
+        else
+          echo "❌ Failed to upload plan to Object Storage"
+          exit 1
+        fi
         
         echo "plan_hash=$PLAN_HASH" >> $GITHUB_OUTPUT
         echo "plan_key=$PLAN_KEY" >> $GITHUB_OUTPUT
@@ -236,7 +245,7 @@ jobs:
     - name: Download and Verify Plan
       run: |
         # Download plan from Object Storage
-        PLAN_KEY="plans/${GITHUB_SHA}-${{ github.run_id }}.tfplan"
+        PLAN_KEY="${{ needs.plan.outputs.plan_key }}"
         linode-cli obj get andyleap-dev-tf $PLAN_KEY tfplan --cluster us-east-1
         
         # Verify checksum
