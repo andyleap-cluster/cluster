@@ -58,13 +58,28 @@ jobs:
         echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
         echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
 
+    - name: Setup GitHub App Key
+      run: |
+        echo "${{ secrets.APP_PRIVATE_KEY }}" > /tmp/github-app-key.pem
+        chmod 600 /tmp/github-app-key.pem
+
     - name: OpenTofu Init
       id: init
       run: tofu init
+      env:
+        LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
+        GITHUB_APP_ID: ${{ secrets.APP_ID }}
+        GITHUB_APP_INSTALLATION_ID: ${{ secrets.APP_INSTALLATION_ID }}
+        GITHUB_APP_PEM_FILE: /tmp/github-app-key.pem
 
     - name: OpenTofu Validate
       id: validate
       run: tofu validate -no-color
+      env:
+        LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
+        GITHUB_APP_ID: ${{ secrets.APP_ID }}
+        GITHUB_APP_INSTALLATION_ID: ${{ secrets.APP_INSTALLATION_ID }}
+        GITHUB_APP_PEM_FILE: /tmp/github-app-key.pem
 
     - name: Setup Linode CLI
       uses: linode/action-linode-cli@v1
@@ -165,6 +180,11 @@ jobs:
         echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
         echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
 
+    - name: Setup GitHub App Key for Apply
+      run: |
+        echo "${{ secrets.APP_PRIVATE_KEY }}" > /tmp/github-app-key.pem
+        chmod 600 /tmp/github-app-key.pem
+
     - name: Setup Linode CLI
       uses: linode/action-linode-cli@v1
       with:
@@ -172,6 +192,10 @@ jobs:
 
     - name: OpenTofu Init
       run: tofu init
+      env:
+        GITHUB_APP_ID: ${{ secrets.APP_ID }}
+        GITHUB_APP_INSTALLATION_ID: ${{ secrets.APP_INSTALLATION_ID }}
+        GITHUB_APP_PEM_FILE: /tmp/github-app-key.pem
 
     - name: Download and Verify Plan
       run: |
