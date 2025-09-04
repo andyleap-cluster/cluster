@@ -15,5 +15,3 @@ images:
 - name: dpage/pgadmin4
   newTag: latest
 
-commonLabels:
-  app.kubernetes.io/part-of: database

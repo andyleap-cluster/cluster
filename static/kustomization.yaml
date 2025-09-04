@@ -11,5 +11,3 @@ images:
 - name: andyleap/static
   newTag: latest
 
-commonLabels:
-  app: static

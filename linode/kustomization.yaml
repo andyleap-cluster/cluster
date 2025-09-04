@@ -15,6 +15,3 @@ images:
   newTag: commit-e11d6ae513f191f1ce6c40593ee2896ce9792615
 - name: andyleap/lkedns
   newTag: latest
-
-commonLabels:
-  app.kubernetes.io/part-of: linode

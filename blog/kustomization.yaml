@@ -11,5 +11,3 @@ images:
 - name: ghcr.io/andyleap/blog
   digest: sha256:871e4efc62f954993363ef3d1d756715784319ee1cfadddd41379abd6f944c40
 
-commonLabels:
-  app: blog
