@@ -2,8 +2,6 @@ name: 'OpenTofu'
 
 on:
   pull_request:
-    paths:
-      - 'terraform/**'
     branches:
       - master
 
@@ -24,6 +22,7 @@ jobs:
     outputs:
       plan_hash: ${{ steps.plan.outputs.plan_hash }}
       plan_key: ${{ steps.plan.outputs.plan_key }}
+      terraform_changed: ${{ steps.changes.outputs.terraform }}
 
     defaults:
       run:
@@ -34,18 +33,33 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Check for terraform changes
+      uses: dorny/paths-filter@v3
+      id: changes
+      with:
+        filters: |
+          terraform:
+            - 'terraform/**'
+
+    - name: Skip terraform steps
+      if: steps.changes.outputs.terraform != 'true'
+      run: echo "No terraform files changed, skipping terraform operations"
+
     - name: Setup OpenTofu
+      if: steps.changes.outputs.terraform == 'true'
       uses: opentofu/setup-opentofu@v1
       with:
         tofu_version: ~1.10
 
     - name: Setup Kubeconfig
+      if: steps.changes.outputs.terraform == 'true'
       run: |
         mkdir -p ~/.kube
         echo "${{ secrets.KUBECONFIG_CONTENT }}" > ~/.kube/config
         chmod 600 ~/.kube/config
 
     - name: Configure AWS CLI for S3 backend
+      if: steps.changes.outputs.terraform == 'true'
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.LINODE_S3_ACCESS_KEY }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.LINODE_S3_SECRET_KEY }}
@@ -54,6 +68,7 @@ jobs:
         echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
 
     - name: OpenTofu Init
+      if: steps.changes.outputs.terraform == 'true'
       id: init
       run: tofu init
       env:
@@ -63,6 +78,7 @@ jobs:
         GITHUB_APP_PEM_FILE: ${{ secrets.APP_PRIVATE_KEY }}
 
     - name: OpenTofu Validate
+      if: steps.changes.outputs.terraform == 'true'
       id: validate
       run: tofu validate -no-color
       env:
@@ -72,14 +88,17 @@ jobs:
         GITHUB_APP_PEM_FILE: ${{ secrets.APP_PRIVATE_KEY }}
 
     - name: Setup Linode CLI
+      if: steps.changes.outputs.terraform == 'true'
       uses: linode/action-linode-cli@v1
       with:
         token: ${{ secrets.LINODE_TOKEN }}
     
     - name: Install boto3 for S3 operations
+      if: steps.changes.outputs.terraform == 'true'
       run: pip3 install boto3
 
     - name: OpenTofu Plan
+      if: steps.changes.outputs.terraform == 'true'
       id: plan
       run: |
         tofu plan -no-color -input=false -out=tfplan
@@ -112,6 +131,23 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
           const fs = require('fs');
+          const terraformChanged = '${{ steps.changes.outputs.terraform }}' === 'true';
+          
+          if (!terraformChanged) {
+            const output = `#### OpenTofu Status ℹ️
+            No terraform files were changed in this PR.
+            
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+            return;
+          }
+          
           let planOutput = 'Plan output not available';
           
           try {
@@ -152,7 +188,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: terraform
     needs: plan
-    if: needs.plan.result == 'success'
+    if: needs.plan.result == 'success' && needs.plan.outputs.terraform_changed == 'true'
 
     defaults:
       run:
@@ -226,3 +262,34 @@ jobs:
         GITHUB_APP_ID: ${{ secrets.APP_ID }}
         GITHUB_APP_INSTALLATION_ID: ${{ secrets.APP_INSTALLATION_ID }}
         GITHUB_APP_PEM_FILE: ${{ secrets.APP_PRIVATE_KEY }}
+
+  complete:
+    name: 'OpenTofu Complete'
+    runs-on: ubuntu-latest
+    needs: [plan, apply]
+    if: always()
+    
+    steps:
+    - name: Check results
+      run: |
+        if [[ "${{ needs.plan.result }}" == "failure" ]]; then
+          echo "❌ Plan failed"
+          exit 1
+        fi
+        
+        if [[ "${{ needs.plan.outputs.terraform_changed }}" != "true" ]]; then
+          echo "✅ No terraform changes detected - workflow completed successfully"
+          exit 0
+        fi
+        
+        if [[ "${{ needs.apply.result }}" == "failure" ]]; then
+          echo "❌ Apply failed"
+          exit 1
+        fi
+        
+        if [[ "${{ needs.apply.result }}" == "skipped" ]]; then
+          echo "❓ Apply was skipped - this shouldn't happen"
+          exit 1
+        fi
+        
+        echo "✅ OpenTofu workflow completed successfully"
