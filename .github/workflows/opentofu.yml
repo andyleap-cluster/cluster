@@ -75,6 +75,9 @@ jobs:
       uses: linode/action-linode-cli@v1
       with:
         token: ${{ secrets.LINODE_TOKEN }}
+    
+    - name: Install boto3 for S3 operations
+      run: pip3 install boto3
 
     - name: OpenTofu Plan
       id: plan
@@ -182,6 +185,9 @@ jobs:
       uses: linode/action-linode-cli@v1
       with:
         token: ${{ secrets.LINODE_TOKEN }}
+    
+    - name: Install boto3 for S3 operations
+      run: pip3 install boto3
 
     - name: OpenTofu Init
       run: tofu init
