@@ -4,8 +4,8 @@ kind: Kustomization
 namespace: argocd
 
 resources:
-# Using ArgoCD upstream Kustomize base
-- https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+# Using ArgoCD upstream Kustomize base - pinned to v3.1.1
+- https://raw.githubusercontent.com/argoproj/argo-cd/v3.1.1/manifests/install.yaml
 
 # Add any custom patches or additional resources here
 patchesStrategicMerge: []
