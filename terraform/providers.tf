@@ -8,5 +8,7 @@ provider "kubernetes" {
 
 provider "github" {
   owner = "andyleap-cluster"
-  # Uses GITHUB_TOKEN environment variable
+  app_auth {
+    # Uses GITHUB_APP_ID, GITHUB_APP_INSTALLATION_ID, GITHUB_APP_PEM_FILE environment variables
+  }
 }
