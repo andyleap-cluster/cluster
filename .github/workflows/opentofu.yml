@@ -58,6 +58,14 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Setup uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        version: "latest"
+
+    - name: Setup Python
+      run: uv python install 3.12
+
     - name: Setup OpenTofu
       uses: opentofu/setup-opentofu@v1
       with:
@@ -77,8 +85,8 @@ jobs:
         echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
         echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
 
-    - name: Install s3cmd for S3 operations
-      run: pip3 install s3cmd
+    - name: Install s3cmd
+      run: uv tool install s3cmd
 
     - name: OpenTofu Init
       id: init
@@ -214,6 +222,14 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Setup uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        version: "latest"
+
+    - name: Setup Python
+      run: uv python install 3.12
+
     - name: Setup OpenTofu
       uses: opentofu/setup-opentofu@v1
       with:
@@ -233,8 +249,8 @@ jobs:
         echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
         echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
 
-    - name: Install s3cmd for S3 operations
-      run: pip3 install s3cmd
+    - name: Install s3cmd
+      run: uv tool install s3cmd
 
     - name: OpenTofu Init
       run: tofu init
