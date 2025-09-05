@@ -113,9 +113,19 @@ Use `kubectl kustomize [service]/` to preview generated manifests. Each service 
 
 ### Container Images
 
-Services reference container images:
-- Directly in YAML manifests with SHA256 digests (e.g., `blog/blog.yaml`)
-- Via Kustomize image transformations in `kustomization.yaml` files
+Services reference container images via Kustomize image transformations in `kustomization.yaml` files using SHA256 digests for immutable deployments.
+
+### Deployment Best Practices
+
+When creating or modifying deployments, follow these practices:
+
+- **Environment Variables**: Always check the service's config.go or documentation for correct environment variable names
+  - Example: passkey-auth-service expects `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` (not `S3_DOMAIN`, `S3_KEY`, `S3_SECRET`)
+- **Security Context**: Match the user ID to the container's Dockerfile user setup
+  - Example: passkey-auth-service uses `runAsUser: 1001` to match its `passkey` user
+- **Revision History**: Use `revisionHistoryLimit: 1` to keep only current revision and reduce cluster resource usage
+- **Resource Limits**: Always set appropriate resource requests and limits
+- **Security Hardening**: Drop all capabilities with `capabilities.drop: ALL` and set `allowPrivilegeEscalation: false`
 
 ### Key Services
 
