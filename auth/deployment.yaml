@@ -41,22 +41,22 @@ spec:
           value: "s3"
         - name: SESSION_MODE
           value: "redis"
-        - name: S3_DOMAIN
+        - name: S3_ENDPOINT
           valueFrom:
             configMapKeyRef:
               name: auth-config
-              key: s3_domain
+              key: s3_endpoint
         - name: S3_BUCKET
           valueFrom:
             configMapKeyRef:
               name: auth-config
               key: s3_bucket
-        - name: S3_KEY
+        - name: S3_ACCESS_KEY
           valueFrom:
             secretKeyRef:
               name: auth-api-token
               key: key
-        - name: S3_SECRET
+        - name: S3_SECRET_KEY
           valueFrom:
             secretKeyRef:
               name: auth-api-token

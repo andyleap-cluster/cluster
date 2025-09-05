@@ -5,5 +5,5 @@ metadata:
 data:
   rp_id: "auth.andyleap.dev"
   rp_origin: "https://auth.andyleap.dev"
-  s3_domain: "us-east-1.linodeobjects.com"
+  s3_endpoint: "us-east-1.linodeobjects.com"
   s3_bucket: "andyleap-dev-auth"
