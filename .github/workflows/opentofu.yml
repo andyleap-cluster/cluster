@@ -16,19 +16,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  plan:
-    name: 'OpenTofu Plan'
+  detect-changes:
+    name: 'Detect Changes'
     runs-on: ubuntu-latest
     outputs:
-      plan_hash: ${{ steps.plan.outputs.plan_hash }}
-      plan_key: ${{ steps.plan.outputs.plan_key }}
       terraform_changed: ${{ steps.changes.outputs.terraform }}
-
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./terraform
-
+    
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -45,21 +38,38 @@ jobs:
       if: steps.changes.outputs.terraform != 'true'
       run: echo "No terraform files changed, skipping terraform operations"
 
+
+  plan:
+    name: 'OpenTofu Plan'
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.terraform_changed == 'true'
+    outputs:
+      plan_hash: ${{ steps.upload.outputs.plan_hash }}
+      plan_key: ${{ steps.upload.outputs.plan_key }}
+      terraform_changed: ${{ needs.detect-changes.outputs.terraform_changed }}
+    
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./terraform
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
     - name: Setup OpenTofu
-      if: steps.changes.outputs.terraform == 'true'
       uses: opentofu/setup-opentofu@v1
       with:
         tofu_version: ~1.10
 
     - name: Setup Kubeconfig
-      if: steps.changes.outputs.terraform == 'true'
       run: |
         mkdir -p ~/.kube
         echo "${{ secrets.KUBECONFIG_CONTENT }}" > ~/.kube/config
         chmod 600 ~/.kube/config
 
     - name: Configure AWS CLI for S3 backend
-      if: steps.changes.outputs.terraform == 'true'
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.LINODE_S3_ACCESS_KEY }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.LINODE_S3_SECRET_KEY }}
@@ -67,8 +77,10 @@ jobs:
         echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
         echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
 
+    - name: Install s3cmd for S3 operations
+      run: pip3 install s3cmd
+
     - name: OpenTofu Init
-      if: steps.changes.outputs.terraform == 'true'
       id: init
       run: tofu init
       env:
@@ -78,7 +90,6 @@ jobs:
         GITHUB_APP_PEM_FILE: ${{ secrets.APP_PRIVATE_KEY }}
 
     - name: OpenTofu Validate
-      if: steps.changes.outputs.terraform == 'true'
       id: validate
       run: tofu validate -no-color
       env:
@@ -87,51 +98,50 @@ jobs:
         GITHUB_APP_INSTALLATION_ID: ${{ secrets.APP_INSTALLATION_ID }}
         GITHUB_APP_PEM_FILE: ${{ secrets.APP_PRIVATE_KEY }}
 
-    - name: Setup Linode CLI
-      if: steps.changes.outputs.terraform == 'true'
-      uses: linode/action-linode-cli@v1
-      with:
-        token: ${{ secrets.LINODE_TOKEN }}
-    
-    - name: Install boto3 for S3 operations
-      if: steps.changes.outputs.terraform == 'true'
-      run: pip3 install boto3
-
     - name: OpenTofu Plan
-      if: steps.changes.outputs.terraform == 'true'
       id: plan
+      run: tofu plan -no-color -input=false -out=tfplan
+      env:
+        LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
+        GITHUB_APP_ID: ${{ secrets.APP_ID }}
+        GITHUB_APP_INSTALLATION_ID: ${{ secrets.APP_INSTALLATION_ID }}
+        GITHUB_APP_PEM_FILE: ${{ secrets.APP_PRIVATE_KEY }}
+
+    - name: Generate Plan Output
+      run: tofu show -no-color tfplan > plan-raw.txt
+
+    - name: Process Plan Output
+      run: sed -E 's/^(\s+)(\+|\-|\~)/\2\1/' plan-raw.txt > plan-output.txt
+
+    - name: Generate Plan Checksum
+      id: checksum
       run: |
-        tofu plan -no-color -input=false -out=tfplan
-        tofu show -no-color tfplan > plan-raw.txt
-        
-        # Post-process plan output to fix diff highlighting
-        sed -E 's/^(\s+)(\+|\-|\~)/\2\1/' plan-raw.txt > plan-output.txt
-        
-        # Generate checksum and upload plan to Object Storage
         PLAN_HASH=$(sha256sum tfplan | cut -d' ' -f1)
         PLAN_KEY="plans/${GITHUB_SHA}-${GITHUB_RUN_ID}"
-        
-        echo "📤 Uploading plan to Object Storage..."
-        echo "Plan key: $PLAN_KEY"
+        echo "plan_hash=$PLAN_HASH" >> $GITHUB_OUTPUT
+        echo "plan_key=$PLAN_KEY" >> $GITHUB_OUTPUT
         echo "Plan hash: $PLAN_HASH"
+        echo "Plan key: $PLAN_KEY"
+
+    - name: Upload Plan to Storage
+      id: upload
+      run: |
+        PLAN_KEY="${{ steps.checksum.outputs.plan_key }}"
+        echo "📤 Uploading plan to Object Storage..."
         
-        if linode-cli obj put tfplan andyleap-dev-tf/$PLAN_KEY --cluster us-east-1; then
+        if s3cmd put tfplan s3://andyleap-dev-tf/$PLAN_KEY/tfplan --host=us-east-1.linodeobjects.com --host-bucket=us-east-1.linodeobjects.com; then
           echo "✅ Plan uploaded successfully"
         else
           echo "❌ Failed to upload plan to Object Storage"
           exit 1
         fi
         
-        echo "plan_hash=$PLAN_HASH" >> $GITHUB_OUTPUT
-        echo "plan_key=$PLAN_KEY" >> $GITHUB_OUTPUT
+        # Pass through outputs
+        echo "plan_hash=${{ steps.checksum.outputs.plan_hash }}" >> $GITHUB_OUTPUT
+        echo "plan_key=${{ steps.checksum.outputs.plan_key }}" >> $GITHUB_OUTPUT
       env:
-        LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
-        LINODE_CLI_OBJ_ACCESS_KEY: ${{ secrets.LINODE_S3_ACCESS_KEY }}
-        LINODE_CLI_OBJ_SECRET_KEY: ${{ secrets.LINODE_S3_SECRET_KEY }}
-        GITHUB_APP_ID: ${{ secrets.APP_ID }}
-        GITHUB_APP_INSTALLATION_ID: ${{ secrets.APP_INSTALLATION_ID }}
-        GITHUB_APP_PEM_FILE: ${{ secrets.APP_PRIVATE_KEY }}
-
+        AWS_ACCESS_KEY_ID: ${{ secrets.LINODE_S3_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.LINODE_S3_SECRET_KEY }}
 
     - name: Update Pull Request
       uses: actions/github-script@v7
@@ -140,7 +150,7 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
           const fs = require('fs');
-          const terraformChanged = '${{ steps.changes.outputs.terraform }}' === 'true';
+          const terraformChanged = '${{ needs.detect-changes.outputs.terraform_changed }}' === 'true';
           
           if (!terraformChanged) {
             const output = `#### OpenTofu Status ℹ️
@@ -188,16 +198,12 @@ jobs:
             body: output
           })
 
-    - name: OpenTofu Plan Status
-      if: steps.plan.outcome == 'failure'
-      run: exit 1
-
   apply:
     name: 'OpenTofu Apply'
     runs-on: ubuntu-latest
     environment: terraform
-    needs: plan
-    if: needs.plan.result == 'success' && needs.plan.outputs.terraform_changed == 'true'
+    needs: [detect-changes, plan]
+    if: needs.plan.result == 'success' && needs.detect-changes.outputs.terraform_changed == 'true'
 
     defaults:
       run:
@@ -227,13 +233,8 @@ jobs:
         echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
         echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
 
-    - name: Setup Linode CLI
-      uses: linode/action-linode-cli@v1
-      with:
-        token: ${{ secrets.LINODE_TOKEN }}
-    
-    - name: Install boto3 for S3 operations
-      run: pip3 install boto3
+    - name: Install s3cmd for S3 operations
+      run: pip3 install s3cmd
 
     - name: OpenTofu Init
       run: tofu init
@@ -242,27 +243,31 @@ jobs:
         GITHUB_APP_INSTALLATION_ID: ${{ secrets.APP_INSTALLATION_ID }}
         GITHUB_APP_PEM_FILE: ${{ secrets.APP_PRIVATE_KEY }}
 
-    - name: Download and Verify Plan
+    - name: Download Plan from Storage
       run: |
-        # Download plan from Object Storage
         PLAN_KEY="${{ needs.plan.outputs.plan_key }}"
-        linode-cli obj get andyleap-dev-tf $PLAN_KEY/tfplan --cluster us-east-1
+        echo "📥 Downloading plan from Object Storage..."
+        echo "Plan key: $PLAN_KEY"
+        s3cmd get s3://andyleap-dev-tf/$PLAN_KEY/tfplan tfplan --host=us-east-1.linodeobjects.com --host-bucket=us-east-1.linodeobjects.com
+        echo "✅ Plan downloaded successfully"
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.LINODE_S3_ACCESS_KEY }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.LINODE_S3_SECRET_KEY }}
         
-        # Verify checksum
+    - name: Verify Plan Checksum
+      run: |
         DOWNLOADED_HASH=$(sha256sum tfplan | cut -d' ' -f1)
         EXPECTED_HASH="${{ needs.plan.outputs.plan_hash }}"
         
+        echo "Expected hash: $EXPECTED_HASH"
+        echo "Downloaded hash: $DOWNLOADED_HASH"
+        
         if [ "$DOWNLOADED_HASH" != "$EXPECTED_HASH" ]; then
           echo "❌ Plan checksum mismatch!"
-          echo "Expected: $EXPECTED_HASH"
-          echo "Downloaded: $DOWNLOADED_HASH"
           exit 1
         fi
         
-        echo "✅ Plan checksum verified: $DOWNLOADED_HASH"
-      env:
-        LINODE_CLI_OBJ_ACCESS_KEY: ${{ secrets.LINODE_S3_ACCESS_KEY }}
-        LINODE_CLI_OBJ_SECRET_KEY: ${{ secrets.LINODE_S3_SECRET_KEY }}
+        echo "✅ Plan checksum verified"
 
     - name: OpenTofu Apply
       run: tofu apply -auto-approve -input=false tfplan
@@ -275,7 +280,7 @@ jobs:
   complete:
     name: 'OpenTofu Complete'
     runs-on: ubuntu-latest
-    needs: [plan, apply]
+    needs: [detect-changes, plan, apply]
     if: always()
     
     steps:
@@ -286,7 +291,7 @@ jobs:
           exit 1
         fi
         
-        if [[ "${{ needs.plan.outputs.terraform_changed }}" != "true" ]]; then
+        if [[ "${{ needs.detect-changes.outputs.terraform_changed }}" != "true" ]]; then
           echo "✅ No terraform changes detected - workflow completed successfully"
           exit 0
         fi
