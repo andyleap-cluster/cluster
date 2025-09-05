@@ -60,15 +60,35 @@ tofu apply  # Only run locally for testing, use GitHub Actions for production
 
 ### Application Changes (GitOps)
 
-Application changes are applied automatically by ArgoCD when committed to the master branch:
+All application changes must be made via Pull Requests from feature branches:
+
+1. **Create Feature Branch**: Always branch off `master` for any changes
+2. **Make Changes**: Update application configurations, deployments, services, etc.
+3. **Create Pull Request**: Submit PR against `master` branch
+4. **Review and Merge**: After review, changes are automatically applied by ArgoCD
 
 ```bash
-# Preview Kustomize output
-kubectl kustomize [service]/
+# Create feature branch from master
+git checkout master
+git pull origin master
+git checkout -b feature/my-change
 
-# Manual application (testing only - use GitOps for production)
-kubectl apply -k [service]/
+# Make your changes
+# ...
+
+# Commit and push
+git add .
+git commit -m "Description of changes"
+git push -u origin feature/my-change
+
+# Create PR via GitHub CLI or web interface
+gh pr create --title "My Change" --body "Description"
+
+# Preview Kustomize output (optional)
+kubectl kustomize [service]/
 ```
+
+**Important**: Never commit directly to `master`. All changes must go through the PR process.
 
 ### ArgoCD Management
 
@@ -135,9 +155,11 @@ The repository uses GitHub Actions for automated infrastructure management:
 
 ## Important Notes
 
-- **GitOps**: Application changes are applied automatically by ArgoCD when committed to master
+- **Pull Request Workflow**: ALL changes must be made via Pull Requests from feature branches - never commit directly to master
+- **GitOps**: Application changes are applied automatically by ArgoCD after PR merge to master
 - **Infrastructure**: Infrastructure changes require PR approval and use OpenTofu GitHub Action
 - **Container Images**: Use SHA256 digests for immutable deployments via Kustomize image transformations
 - **High Availability**: Services use rolling update strategies
 - **Self-Managing**: The cluster self-manages via the `cluster/cluster.yaml` ArgoCD application
 - **Modular Design**: Each service directory is self-contained with its own Kustomize configuration
+- **Revision History**: Deployments use `revisionHistoryLimit: 1` to keep only current revision
