@@ -10,39 +10,64 @@ This is a Kubernetes cluster configuration repository that uses GitOps with Argo
 
 - **ArgoCD**: GitOps controller that automatically deploys applications from this repository
 - **Kustomize**: Used for templating and customizing Kubernetes resources
-- **Application Modules**: Individual services organized in directories (blog, database, sshsweeper, etc.)
-- **Infrastructure Components**: Linode-specific resources, metrics-server, and ingress controllers
+- **OpenTofu/Terraform**: Infrastructure as Code for Linode resources and Kubernetes secrets
+- **Application Modules**: Individual services organized in directories (auth, redis, sshsweeper, etc.)
+- **Infrastructure Components**: Linode-specific resources and ingress controllers
 
 ### Directory Structure
 
 ```
 cluster/              # ArgoCD Application manifests for cluster components
 ├── cluster.yaml      # Self-managing ArgoCD application
-├── database.yaml     # Database application manifest
-├── blog.yaml         # Blog application manifest
-└── ...
+├── argocd.yaml       # ArgoCD application manifest
+├── auth.yaml         # Auth service application manifest
+├── redis.yaml        # Redis application manifest
+├── sshsweeper.yaml   # SSHSweeper application manifest
+└── linode.yaml       # Linode components application manifest
 
 [service]/            # Individual service directories
 ├── kustomization.yaml # Kustomize configuration
 ├── deployment.yaml   # Kubernetes Deployment manifest
 ├── service.yaml      # Kubernetes Service manifest
 └── [other].yaml      # Additional Kubernetes resources
+
+terraform/            # Infrastructure as Code
+├── main.tf           # Main Terraform configuration
+├── object-storage.tf # Linode Object Storage buckets and keys
+├── secrets.tf        # Kubernetes secrets managed by Terraform
+└── ...               # Other infrastructure components
 ```
 
 ## Development Workflow
 
-### Applying Changes
+### Infrastructure Changes (Terraform/OpenTofu)
 
-Since this is a GitOps repository, changes are applied automatically by ArgoCD when committed to the master branch. Manual application of manifests:
+Infrastructure changes are managed via OpenTofu and automated through GitHub Actions:
+
+1. **Create Pull Request**: Changes to `terraform/` directory trigger OpenTofu workflow
+2. **Plan Phase**: GitHub Action runs `tofu plan` and posts results to PR
+3. **Review and Approve**: Review the plan output in PR comments
+4. **Apply Phase**: After PR approval, `tofu apply` runs automatically
+5. **State Storage**: Terraform state is stored in Linode Object Storage (S3-compatible)
 
 ```bash
-# Apply specific manifests (if needed for testing)
-kubectl apply -f cluster/
-kubectl apply -f database/
-kubectl apply -k [service]/  # For Kustomize-based services
+# Local development (if needed)
+cd terraform/
+tofu init
+tofu plan
+tofu apply  # Only run locally for testing, use GitHub Actions for production
+```
 
+### Application Changes (GitOps)
+
+Application changes are applied automatically by ArgoCD when committed to the master branch:
+
+```bash
 # Preview Kustomize output
 kubectl kustomize [service]/
+
+# Manual application (testing only - use GitOps for production)
+kubectl apply -k [service]/
 ```
 
 ### ArgoCD Management
@@ -74,29 +99,45 @@ Services reference container images:
 
 ### Key Services
 
-All services now use Kustomize for configuration management:
+All services use Kustomize for configuration management:
 
 - **ArgoCD**: GitOps controller using upstream Kustomize base
-- **Database**: PostgreSQL deployment with persistent storage and pgAdmin
-- **Blog**: Web application with S3 integration for static assets  
+- **Auth**: Passkey authentication service with Redis session storage and S3 data storage (auth.andyleap.dev)
+- **Redis**: Redis server for session storage (auth namespace)
 - **SSHSweeper**: SSH service with custom private key mounting
 - **Singress**: Custom ingress controller with TLS certificate management (in linode/)
-- **Static**: Static file serving with S3 backend
-- **Kube-system**: Metrics server and other system components
-- **Linode**: Linode-specific networking and DNS components
+- **Linode**: Linode-specific networking and DNS components (LKE DNS, ExtRoute)
 
 ### Secrets Management
 
-Services use Kubernetes secrets for sensitive configuration:
-- Database credentials (`postgres-secret`)
-- S3 API tokens (`s3-api-token`, `singress-api-token`) 
-- Application-specific secrets (`blog-pg`)
+Secrets are managed by Terraform/OpenTofu and automatically created in the cluster:
+- **Object Storage Access**: `singress-api-token`, `auth-api-token` (Linode Object Storage credentials)
+- **DNS Management**: `lkedns-api-token` (Linode API token)
+- **Location**: Secrets are created in appropriate namespaces by Terraform
+- **Rotation**: Update secrets by modifying Terraform configuration and applying
+
+### Service Routing
+
+External routing is handled by the Singress ingress controller:
+- Services use the `git.andyleap.dev/singress-target` annotation to specify their external domain
+- Singress automatically provisions TLS certificates and stores them in S3
+- Examples: `auth.andyleap.dev` (Auth service), `argocd.andyleap.dev` (ArgoCD)
+
+### GitHub Actions Workflow
+
+The repository uses GitHub Actions for automated infrastructure management:
+
+- **Trigger**: Pull requests to master branch with changes in `terraform/` directory
+- **Plan**: OpenTofu plan runs and posts results as PR comments
+- **Apply**: After PR approval, OpenTofu apply runs automatically
+- **State Management**: Plans are stored/retrieved from Linode Object Storage for consistency
+- **Security**: Uses environment protection for apply phase requiring approval
 
 ## Important Notes
 
-- All changes should be committed to trigger ArgoCD sync
-- Container images use SHA256 digests for immutable deployments via Kustomize image transformations
-- Services are designed to be highly available with rolling update strategies
-- The cluster self-manages via the `cluster/cluster.yaml` ArgoCD application
-- ArgoCD itself is deployed using the upstream Kustomize base for better maintainability
-- Each service directory is self-contained with its own Kustomize configuration
+- **GitOps**: Application changes are applied automatically by ArgoCD when committed to master
+- **Infrastructure**: Infrastructure changes require PR approval and use OpenTofu GitHub Action
+- **Container Images**: Use SHA256 digests for immutable deployments via Kustomize image transformations
+- **High Availability**: Services use rolling update strategies
+- **Self-Managing**: The cluster self-manages via the `cluster/cluster.yaml` ArgoCD application
+- **Modular Design**: Each service directory is self-contained with its own Kustomize configuration

@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: auth
+
+resources:
+- deployment.yaml
+- service.yaml
+- configmap.yaml
+
+images:
+- name: ghcr.io/andyleap/passkey-auth-service:latest
+  digest: sha256:55807f5fe6e57e922ff23fa54501b4dfab0d97d8491b7d8a41551412e3091c24

@@ -29,3 +29,18 @@ resource "kubernetes_secret" "lkedns_api_token" {
   type = "Opaque"
 }
 
+# Auth service (Object storage access)
+resource "kubernetes_secret" "auth_api_token" {
+  metadata {
+    name      = "auth-api-token"
+    namespace = "auth"
+  }
+
+  data = {
+    key    = linode_object_storage_key.auth.access_key
+    secret = linode_object_storage_key.auth.secret_key
+  }
+
+  type = "Opaque"
+}
+

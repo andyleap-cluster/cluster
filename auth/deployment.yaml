@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: passkey-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: passkey-auth
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  revisionHistoryLimit: 5
+  template:
+    metadata:
+      labels:
+        app: passkey-auth
+    spec:
+      containers:
+      - name: passkey-auth
+        image: ghcr.io/andyleap/passkey-auth-service:latest
+        ports:
+        - name: https
+          containerPort: 8443
+        env:
+        - name: PORT
+          value: "8443"
+        - name: RP_ID
+          valueFrom:
+            configMapKeyRef:
+              name: auth-config
+              key: rp_id
+        - name: RP_ORIGIN
+          valueFrom:
+            configMapKeyRef:
+              name: auth-config
+              key: rp_origin
+        - name: STORAGE_MODE
+          value: "s3"
+        - name: SESSION_MODE
+          value: "redis"
+        - name: S3_DOMAIN
+          valueFrom:
+            configMapKeyRef:
+              name: auth-config
+              key: s3_domain
+        - name: S3_BUCKET
+          valueFrom:
+            configMapKeyRef:
+              name: auth-config
+              key: s3_bucket
+        - name: S3_KEY
+          valueFrom:
+            secretKeyRef:
+              name: auth-api-token
+              key: key
+        - name: S3_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: auth-api-token
+              key: secret
+        - name: REDIS_ADDR
+          value: "redis:6379"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 65534
+          capabilities:
+            drop:
+              - ALL
