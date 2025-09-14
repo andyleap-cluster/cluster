@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: couchdb
+
+resources:
+- deployment.yaml
+- service.yaml
+- pvc.yaml
+
+images:
+- name: couchdb:3.3.3
+  digest: sha256:dff5e7bb64e99b5b6ad8ece26c4014eb9a17e07e20af84227e4c3ff8e2f7adf7
