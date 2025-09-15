@@ -9,5 +9,5 @@ resources:
 - pvc.yaml
 
 images:
-- name: couchdb:3.3.3
-  digest: sha256:dff5e7bb64e99b5b6ad8ece26c4014eb9a17e07e20af84227e4c3ff8e2f7adf7
+- name: couchdb:3.5.0
+  digest: sha256:2f27666c837cb9096c95e3cbd1c125651c0fa6a92594ffc9268671e4d065d6a9
