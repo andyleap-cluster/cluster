@@ -63,7 +63,7 @@ spec:
         name: singress
         env:
         - name: S3_DOMAIN
-          value: us-east-1.linodeobjects.com
+          value: us-sea-1.linodeobjects.com
         - name: S3_BUCKET
           value: andyleap-dev-tls
         - name: S3_KEY

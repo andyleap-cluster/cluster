@@ -1,20 +1,20 @@
 # OpenTofu state bucket
 resource "linode_object_storage_bucket" "terraform_state" {
-  region = "us-east"
+  region = "us-sea"
   label  = "andyleap-dev-tf"
   acl    = "private"
 }
 
 # TLS certificates bucket (existing)
 resource "linode_object_storage_bucket" "tls_certs" {
-  region = "us-east" 
+  region = "us-sea"
   label  = "andyleap-dev-tls"
   acl    = "private"
 }
 
 # Auth service bucket
 resource "linode_object_storage_bucket" "auth" {
-  region = "us-east"
+  region = "us-sea"
   label  = "andyleap-dev-auth"
   acl    = "private"
 }
@@ -25,7 +25,7 @@ resource "linode_object_storage_key" "singress" {
 
   bucket_access {
     bucket_name = "andyleap-dev-tls"
-    region      = "us-east"
+    region      = "us-sea"
     permissions = "read_write"
   }
 
@@ -37,7 +37,7 @@ resource "linode_object_storage_key" "auth" {
 
   bucket_access {
     bucket_name = "andyleap-dev-auth"
-    region      = "us-east"
+    region      = "us-sea"
     permissions = "read_write"
   }
 
