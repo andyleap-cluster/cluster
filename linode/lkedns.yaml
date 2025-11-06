@@ -14,11 +14,30 @@ spec:
         app: lkedns
     spec:
       containers:
-      - image: andyleap/lkedns
+      - image: ghcr.io/andyleap-cluster/lkedns
         name: lkedns
+        args:
+        - --cluster-id=$(CLUSTER_ID)
+        - --cluster-pool-id=$(CLUSTER_POOL_ID)
+        - --domain-id=$(DOMAIN_ID)
         env:
         - name: LINODE_TOKEN
           valueFrom:
             secretKeyRef:
-              name: lkedns-api-token
+              name: lkedns
               key: token
+        - name: CLUSTER_ID
+          valueFrom:
+            secretKeyRef:
+              name: lkedns
+              key: cluster_id
+        - name: CLUSTER_POOL_ID
+          valueFrom:
+            secretKeyRef:
+              name: lkedns
+              key: cluster_pool_id
+        - name: DOMAIN_ID
+          valueFrom:
+            secretKeyRef:
+              name: lkedns
+              key: domain_id

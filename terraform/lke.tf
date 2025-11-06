@@ -2,8 +2,8 @@
 # This cluster runs the main workloads
 resource "linode_lke_cluster" "cluster" {
   label       = "cluster"
-  k8s_version = "1.31"
-  region      = "us-east"
+  k8s_version = "1.34"
+  region      = "us-sea"
 
   pool {
     type  = "g6-standard-1"

@@ -4,8 +4,8 @@ terraform {
   backend "s3" {
     bucket                      = "andyleap-dev-tf"
     key                         = "opentofu.tfstate"
-    region                      = "us-east-1"
-    endpoint                    = "https://us-east-1.linodeobjects.com"
+    region                      = "us-sea-1"
+    endpoint                    = "https://us-sea-1.linodeobjects.com"
     skip_credentials_validation = true
     skip_metadata_api_check     = true
     skip_region_validation      = true

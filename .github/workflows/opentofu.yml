@@ -137,7 +137,7 @@ jobs:
         PLAN_KEY="${{ steps.checksum.outputs.plan_key }}"
         echo "📤 Uploading plan to Object Storage..."
         
-        if s3cmd put tfplan s3://andyleap-dev-tf/$PLAN_KEY/tfplan --host=us-east-1.linodeobjects.com --host-bucket=us-east-1.linodeobjects.com; then
+        if s3cmd put tfplan s3://andyleap-dev-tf/$PLAN_KEY/tfplan --host=us-sea-1.linodeobjects.com --host-bucket=us-sea-1.linodeobjects.com; then
           echo "✅ Plan uploaded successfully"
         else
           echo "❌ Failed to upload plan to Object Storage"
@@ -264,7 +264,7 @@ jobs:
         PLAN_KEY="${{ needs.plan.outputs.plan_key }}"
         echo "📥 Downloading plan from Object Storage..."
         echo "Plan key: $PLAN_KEY"
-        s3cmd get s3://andyleap-dev-tf/$PLAN_KEY/tfplan tfplan --host=us-east-1.linodeobjects.com --host-bucket=us-east-1.linodeobjects.com
+        s3cmd get s3://andyleap-dev-tf/$PLAN_KEY/tfplan tfplan --host=us-sea-1.linodeobjects.com --host-bucket=us-sea-1.linodeobjects.com
         echo "✅ Plan downloaded successfully"
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.LINODE_S3_ACCESS_KEY }}

@@ -18,12 +18,15 @@ resource "kubernetes_secret" "singress_api_token" {
 # LKEDNS (DNS management)
 resource "kubernetes_secret" "lkedns_api_token" {
   metadata {
-    name      = "lkedns-api-token"
+    name      = "lkedns"
     namespace = "linode"
   }
 
   data = {
     token = linode_token.lkedns.token
+    domain_id = linode_domain.main.id
+    cluster_id = linode_lke_cluster.cluster.id
+    cluster_pool_id = linode_lke_cluster.cluster.pool[0].id
   }
 
   type = "Opaque"

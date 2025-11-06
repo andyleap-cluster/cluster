@@ -35,7 +35,7 @@ resource "linode_object_storage_key" "terraform_state" {
 
   bucket_access {
     bucket_name = "andyleap-dev-tf"
-    region      = "us-east"
+    region      = "us-sea"
     permissions = "read_write"
   }
 
