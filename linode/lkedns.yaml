@@ -14,7 +14,7 @@ spec:
         app: lkedns
     spec:
       containers:
-      - image: andyleap/lkedns
+      - image: ghcr.io/andyleap-cluster/lkedns
         name: lkedns
         args:
         - --cluster-id=$(CLUSTER_ID)
