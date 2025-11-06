@@ -5,16 +5,16 @@ resource "linode_token" "lkedns" {
 }
 
 resource "linode_domain" "main" {
-    type = "master"
-    domain = "andyleap.dev"
-    soa_email = "andyleap@gmail.com"
+  type = "master"
+  domain = "andyleap.dev"
+  soa_email = "andyleap@gmail.com"
 }
 
 resource "linode_domain_record" "star" {
-    domain_id = linode_domain.main.id
-    name = "*"
-    record_type = "CNAME"
-    target = "andyleap.dev"
+  domain_id = linode_domain.main.id
+  name = "*"
+  record_type = "CNAME"
+  target = "andyleap.dev"
 }
 
 resource "linode_domain_record" "keybase" {
