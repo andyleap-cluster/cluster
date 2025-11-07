@@ -17,6 +17,7 @@ spec:
       - image: ghcr.io/andyleap-cluster/lkedns
         name: lkedns
         args:
+        - ./main
         - --cluster-id=$(CLUSTER_ID)
         - --cluster-pool-id=$(CLUSTER_POOL_ID)
         - --domain-id=$(DOMAIN_ID)
