@@ -10,15 +10,16 @@ deployment:
   revisionHistoryLimit: 1
 
 # Entry points configuration
+# Use high ports inside container (non-privileged) while exposing 80/443 on the LoadBalancer
 ports:
   web:
-    port: 80
+    port: 8000
     expose:
       default: true
     exposedPort: 80
     protocol: TCP
   websecure:
-    port: 443
+    port: 8443
     expose:
       default: true
     exposedPort: 443
@@ -63,19 +64,17 @@ ingressRoute:
   dashboard:
     enabled: false
 
-# Security context
+# Security context - no privileged capabilities needed with high ports
 securityContext:
   allowPrivilegeEscalation: false
   capabilities:
     drop:
       - ALL
-    add:
-      - NET_BIND_SERVICE
-  readOnlyRootFilesystem: false
+  readOnlyRootFilesystem: true
 
 # Pod security context
 podSecurityContext:
-  runAsNonRoot: false
+  runAsNonRoot: true
 
 # Logging
 logs:
