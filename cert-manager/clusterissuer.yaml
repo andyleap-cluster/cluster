@@ -9,6 +9,8 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-account-key
     solvers:
-      - http01:
-          ingress:
-            ingressClassName: traefik
+      - dns01:
+          linode:
+            apiKeySecretRef:
+              name: linode-dns-token
+              key: api-token
