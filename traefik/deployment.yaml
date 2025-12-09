@@ -28,9 +28,6 @@ spec:
             - --entryPoints.websecure.address=:443
             - --entryPoints.web.http.redirections.entryPoint.to=websecure
             - --entryPoints.web.http.redirections.entryPoint.scheme=https
-            - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
-            - --certificatesresolvers.letsencrypt.acme.email=letsencrypt@andyleap.dev
-            - --certificatesresolvers.letsencrypt.acme.storage=/data/acme.json
             - --ping=true
           ports:
             - name: web
@@ -42,9 +39,6 @@ spec:
             - name: dashboard
               containerPort: 8080
               protocol: TCP
-          volumeMounts:
-            - name: data
-              mountPath: /data
           resources:
             requests:
               cpu: 100m
@@ -72,7 +66,3 @@ spec:
               port: 8080
             initialDelaySeconds: 10
             periodSeconds: 10
-      volumes:
-        - name: data
-          persistentVolumeClaim:
-            claimName: traefik-acme
