@@ -9,10 +9,9 @@ This is a Kubernetes cluster configuration repository that uses GitOps with Argo
 ### Key Components
 
 - **ArgoCD**: GitOps controller that automatically deploys applications from this repository
+- **Traefik**: Ingress controller with automatic Let's Encrypt TLS
 - **Kustomize**: Used for templating and customizing Kubernetes resources
-- **OpenTofu/Terraform**: Infrastructure as Code for Linode resources and Kubernetes secrets
-- **Application Modules**: Individual services organized in directories (auth, redis, sshsweeper, etc.)
-- **Infrastructure Components**: Linode-specific resources and ingress controllers
+- **OpenTofu/Terraform**: Infrastructure as Code for Linode resources
 
 ### Directory Structure
 
@@ -20,22 +19,28 @@ This is a Kubernetes cluster configuration repository that uses GitOps with Argo
 cluster/              # ArgoCD Application manifests for cluster components
 ├── cluster.yaml      # Self-managing ArgoCD application
 ├── argocd.yaml       # ArgoCD application manifest
-├── auth.yaml         # Auth service application manifest
-├── redis.yaml        # Redis application manifest
-├── sshsweeper.yaml   # SSHSweeper application manifest
-└── linode.yaml       # Linode components application manifest
+└── traefik.yaml      # Traefik ingress controller application
 
-[service]/            # Individual service directories
-├── kustomization.yaml # Kustomize configuration
-├── deployment.yaml   # Kubernetes Deployment manifest
-├── service.yaml      # Kubernetes Service manifest
-└── [other].yaml      # Additional Kubernetes resources
+argocd/               # ArgoCD configuration
+└── kustomization.yaml
+
+traefik/              # Traefik ingress controller
+├── kustomization.yaml
+├── namespace.yaml
+├── crds.yaml         # Traefik CRDs (IngressRoute, Middleware, etc.)
+├── rbac.yaml         # ServiceAccount, ClusterRole, ClusterRoleBinding
+├── deployment.yaml   # Traefik deployment
+├── service.yaml      # LoadBalancer service
+└── ingressroute-argocd.yaml  # IngressRoute for ArgoCD UI
 
 terraform/            # Infrastructure as Code
 ├── main.tf           # Main Terraform configuration
-├── object-storage.tf # Linode Object Storage buckets and keys
-├── secrets.tf        # Kubernetes secrets managed by Terraform
-└── ...               # Other infrastructure components
+├── providers.tf      # Provider configuration
+├── lke.tf            # Linode Kubernetes Engine cluster
+├── dns.tf            # DNS zone and records
+├── object-storage.tf # Terraform state bucket
+├── secrets.tf        # Kubernetes secrets (currently empty)
+└── github-secrets.tf # GitHub Actions secrets
 ```
 
 ## Development Workflow
@@ -109,49 +114,32 @@ All services use Kustomize for resource templating and customization:
 - **Customizations**: Image tags/digests, labels, namespaces, and patches
 - **ArgoCD Special Case**: Uses upstream ArgoCD Kustomize base from GitHub
 
-Use `kubectl kustomize [service]/` to preview generated manifests. Each service directory contains its own kustomization.yaml file that references the required resource files.
-
-### Container Images
-
-Services reference container images via Kustomize image transformations in `kustomization.yaml` files using SHA256 digests for immutable deployments.
+Use `kubectl kustomize [service]/` to preview generated manifests.
 
 ### Deployment Best Practices
 
 When creating or modifying deployments, follow these practices:
 
-- **Environment Variables**: Always check the service's config.go or documentation for correct environment variable names
-  - Example: passkey-auth-service expects `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` (not `S3_DOMAIN`, `S3_KEY`, `S3_SECRET`)
-- **Security Context**: Match the user ID to the container's Dockerfile user setup
-  - Example: passkey-auth-service uses `runAsUser: 1001` to match its `passkey` user
 - **Revision History**: Use `revisionHistoryLimit: 1` to keep only current revision and reduce cluster resource usage
 - **Resource Limits**: Always set appropriate resource requests and limits
 - **Security Hardening**: Drop all capabilities with `capabilities.drop: ALL` and set `allowPrivilegeEscalation: false`
 
 ### Key Services
 
-All services use Kustomize for configuration management:
-
-- **ArgoCD**: GitOps controller using upstream Kustomize base
-- **Auth**: Passkey authentication service with Redis session storage and S3 data storage (auth.andyleap.dev)
-- **Redis**: Redis server for session storage (auth namespace)
-- **SSHSweeper**: SSH service with custom private key mounting
-- **Singress**: Custom ingress controller with TLS certificate management (in linode/)
-- **Linode**: Linode-specific networking and DNS components (LKE DNS, ExtRoute)
-
-### Secrets Management
-
-Secrets are managed by Terraform/OpenTofu and automatically created in the cluster:
-- **Object Storage Access**: `singress-api-token`, `auth-api-token` (Linode Object Storage credentials)
-- **DNS Management**: `lkedns-api-token` (Linode API token)
-- **Location**: Secrets are created in appropriate namespaces by Terraform
-- **Rotation**: Update secrets by modifying Terraform configuration and applying
+- **ArgoCD**: GitOps controller using upstream Kustomize base (argocd.andyleap.dev)
+- **Traefik**: Ingress controller with automatic Let's Encrypt TLS certificates
 
 ### Service Routing
 
-External routing is handled by the Singress ingress controller:
-- Services use the `git.andyleap.dev/singress-target` annotation to specify their external domain
-- Singress automatically provisions TLS certificates and stores them in S3
-- Examples: `auth.andyleap.dev` (Auth service), `argocd.andyleap.dev` (ArgoCD)
+External routing is handled by Traefik:
+- Services use Traefik `IngressRoute` CRDs to define routing rules
+- TLS certificates are automatically provisioned via Let's Encrypt ACME
+- Example: `argocd.andyleap.dev` routes to the ArgoCD server
+
+To add a new service with external access:
+1. Create an `IngressRoute` resource in the service's namespace
+2. Specify the `Host()` match rule and target service
+3. Use `certResolver: letsencrypt` for automatic TLS
 
 ### GitHub Actions Workflow
 
@@ -168,8 +156,6 @@ The repository uses GitHub Actions for automated infrastructure management:
 - **Pull Request Workflow**: ALL changes must be made via Pull Requests from feature branches - never commit directly to master
 - **GitOps**: Application changes are applied automatically by ArgoCD after PR merge to master
 - **Infrastructure**: Infrastructure changes require PR approval and use OpenTofu GitHub Action
-- **Container Images**: Use SHA256 digests for immutable deployments via Kustomize image transformations
-- **High Availability**: Services use rolling update strategies
 - **Self-Managing**: The cluster self-manages via the `cluster/cluster.yaml` ArgoCD application
 - **Modular Design**: Each service directory is self-contained with its own Kustomize configuration
 - **Revision History**: Deployments use `revisionHistoryLimit: 1` to keep only current revision

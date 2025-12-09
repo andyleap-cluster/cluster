@@ -1,9 +1,3 @@
-# Linode token for DNS management
-resource "linode_token" "lkedns" {
-  label  = "lkedns-production"
-  scopes = "domains:read_write"
-}
-
 resource "linode_domain" "main" {
   type = "master"
   domain = "andyleap.dev"
