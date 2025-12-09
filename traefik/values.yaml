@@ -44,10 +44,15 @@ resources:
 # Kubernetes providers
 providers:
   kubernetesCRD:
-    enabled: true
-    allowCrossNamespace: true
+    enabled: false
   kubernetesIngress:
+    enabled: false
+  kubernetesGateway:
     enabled: true
+
+# Gateway API - disable helm chart Gateway, we create it manually for full control
+gateway:
+  enabled: false
 
 # Enable ping for health checks
 ping:
@@ -77,14 +82,36 @@ logs:
   general:
     level: INFO
 
-# Extra objects to deploy (middleware for HTTPS redirect)
+# GatewayClass configuration - Traefik Helm chart creates this automatically
+gatewayClass:
+  enabled: true
+  name: traefik
+
+# Extra objects to deploy - Gateway resource for Gateway API
 extraObjects:
-  - apiVersion: traefik.io/v1alpha1
-    kind: Middleware
+  - apiVersion: gateway.networking.k8s.io/v1
+    kind: Gateway
     metadata:
-      name: redirect-https
+      name: traefik-gateway
       namespace: traefik
     spec:
-      redirectScheme:
-        scheme: https
-        permanent: true
+      gatewayClassName: traefik
+      listeners:
+        - name: web
+          port: 80
+          protocol: HTTP
+          allowedRoutes:
+            namespaces:
+              from: All
+        - name: websecure
+          port: 443
+          protocol: HTTPS
+          tls:
+            mode: Terminate
+            certificateRefs:
+              - kind: Secret
+                name: argocd-tls
+                namespace: argocd
+          allowedRoutes:
+            namespaces:
+              from: All
