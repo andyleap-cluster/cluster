@@ -5,6 +5,7 @@ resources:
   - namespace.yaml
   - crds.yaml
   - rbac.yaml
+  - middleware.yaml
   - deployment.yaml
   - service.yaml
   - ingressroute-argocd.yaml

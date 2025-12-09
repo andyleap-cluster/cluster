@@ -13,4 +13,22 @@ spec:
         - name: argocd-server
           port: 80
   tls:
-    certResolver: letsencrypt
+    secretName: argocd-tls
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: argocd-redirect
+  namespace: argocd
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`argocd.andyleap.dev`)
+      kind: Rule
+      middlewares:
+        - name: redirect-https
+          namespace: traefik
+      services:
+        - name: argocd-server
+          port: 80
