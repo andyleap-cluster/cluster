@@ -6,7 +6,7 @@ data "github_repository" "repo" {
 # Create an administrative token for GitHub Actions
 resource "linode_token" "github_actions" {
   label  = "github-actions-production"
-  scopes = "account:read_only domains:read_write events:read_only images:read_write linodes:read_write lke:read_write longview:read_only nodebalancers:read_write object_storage:read_write stackscripts:read_write volumes:read_write"
+  scopes = "account:read_write databases:read_write domains:read_write events:read_only firewall:read_write images:read_write ips:read_write linodes:read_write lke:read_write longview:read_write nodebalancers:read_write object_storage:read_write stackscripts:read_write volumes:read_write"
 }
 
 # Create GitHub repository secrets for the workflow
