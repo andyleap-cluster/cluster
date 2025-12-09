@@ -26,8 +26,6 @@ spec:
             - --providers.kubernetescrd
             - --entryPoints.web.address=:80
             - --entryPoints.websecure.address=:443
-            - --entryPoints.web.http.redirections.entryPoint.to=websecure
-            - --entryPoints.web.http.redirections.entryPoint.scheme=https
             - --ping=true
           ports:
             - name: web
