@@ -4,6 +4,22 @@ resource "linode_domain" "main" {
   soa_email = "andyleap@gmail.com"
 }
 
+# Look up the Traefik LoadBalancer service to get the external IP
+data "kubernetes_service" "traefik" {
+  metadata {
+    name      = "traefik"
+    namespace = "traefik"
+  }
+}
+
+# A record for the root domain pointing to the LoadBalancer IP
+resource "linode_domain_record" "root" {
+  domain_id   = linode_domain.main.id
+  name        = ""
+  record_type = "A"
+  target      = data.kubernetes_service.traefik.status[0].load_balancer[0].ingress[0].ip
+}
+
 resource "linode_domain_record" "star" {
   domain_id = linode_domain.main.id
   name = "*"
