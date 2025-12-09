@@ -8,9 +8,22 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/andyleap-cluster/cluster.git'
-    path: traefik
-    targetRevision: master
+    repoURL: 'https://traefik.github.io/charts'
+    chart: traefik
+    targetRevision: 34.4.1
+    helm:
+      valueFiles:
+        - $values/traefik/values.yaml
+  sources:
+    - repoURL: 'https://traefik.github.io/charts'
+      chart: traefik
+      targetRevision: 34.4.1
+      helm:
+        valueFiles:
+          - $values/traefik/values.yaml
+    - repoURL: 'https://github.com/andyleap-cluster/cluster.git'
+      targetRevision: master
+      ref: values
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: traefik
