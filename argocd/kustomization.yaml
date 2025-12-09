@@ -12,12 +12,3 @@ configMapGenerator:
   behavior: merge
   literals:
   - server.insecure=true
-
-patches:
-- target:
-    kind: Service
-    name: argocd-server
-  patch: |-
-    - op: add
-      path: /metadata/annotations/git.andyleap.dev~1singress-target
-      value: argocd.andyleap.dev
