@@ -6,14 +6,15 @@ resource "linode_token" "cert_manager" {
   scopes = "domains:read_write"
 }
 
-# Create Kubernetes secret for cert-manager to access Linode DNS API
+# Create Kubernetes secret for cert-manager webhook to access Linode DNS API
+# The webhook expects secret name "linode-credentials" with key "token"
 resource "kubernetes_secret" "cert_manager_linode" {
   metadata {
-    name      = "linode-dns-token"
+    name      = "linode-credentials"
     namespace = "cert-manager"
   }
 
   data = {
-    "api-token" = linode_token.cert_manager.token
+    "token" = linode_token.cert_manager.token
   }
 }

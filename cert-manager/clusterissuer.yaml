@@ -10,7 +10,6 @@ spec:
       name: letsencrypt-account-key
     solvers:
       - dns01:
-          linode:
-            apiKeySecretRef:
-              name: linode-dns-token
-              key: api-token
+          webhook:
+            solverName: linode
+            groupName: acme.slicen.me

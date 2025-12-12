@@ -1,0 +1,29 @@
+# cert-manager-webhook-linode configuration
+
+# Group name used in ClusterIssuer/Issuer webhook config
+groupName: acme.slicen.me
+
+# Linode API credentials secret configuration
+# This should match the secret created by Terraform
+secretName: linode-credentials
+secretKey: token
+
+# Container image
+image:
+  repository: slicen/cert-manager-webhook-linode
+  tag: v0.2.0
+  pullPolicy: IfNotPresent
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 443
+
+# Resource limits
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 64Mi
