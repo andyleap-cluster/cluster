@@ -17,8 +17,8 @@ deployment:
   logLevel: ""
 
 image:
-  repository: slicen/cert-manager-webhook-linode
-  tag: v0.2.0
+  repository: linode/cert-manager-webhook-linode
+  tag: v0.3.0
   pullPolicy: IfNotPresent
 
 service:
