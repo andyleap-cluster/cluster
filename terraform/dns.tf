@@ -32,3 +32,11 @@ resource "linode_domain_record" "keybase" {
   record_type = "TXT"
   target = "keybase-site-verification=4fetXyozvbk69u_2Dhpz5S-_CFHg2l6zZ2fANHSyRRM"
 }
+
+# Home Assistant CNAME pointing to Nabu Casa
+resource "linode_domain_record" "home_assistant" {
+  domain_id   = linode_domain.main.id
+  name        = "home"
+  record_type = "CNAME"
+  target      = "7m9dm8f7ryknilv6sye73pbgwlew9whh.ui.nabu.casa"
+}
