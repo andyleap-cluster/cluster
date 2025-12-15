@@ -40,3 +40,11 @@ resource "linode_domain_record" "home_assistant" {
   record_type = "CNAME"
   target      = "7m9dm8f7ryknilv6sye73pbgwlew9whh.ui.nabu.casa"
 }
+
+# Home Assistant ACME challenge CNAME for SSL certificate validation
+resource "linode_domain_record" "home_assistant_acme" {
+  domain_id   = linode_domain.main.id
+  name        = "_acme-challenge.home"
+  record_type = "CNAME"
+  target      = "_acme-challenge.7m9dm8f7ryknilv6sye73pbgwlew9whh.ui.nabu.casa"
+}
