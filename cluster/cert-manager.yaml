@@ -7,13 +7,6 @@ metadata:
   - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  source:
-    repoURL: 'https://charts.jetstack.io'
-    chart: cert-manager
-    targetRevision: v1.16.2
-    helm:
-      valueFiles:
-        - $values/cert-manager/values.yaml
   sources:
     - repoURL: 'https://charts.jetstack.io'
       chart: cert-manager
