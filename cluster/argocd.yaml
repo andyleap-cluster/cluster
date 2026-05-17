@@ -7,13 +7,6 @@ metadata:
   - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  source:
-    repoURL: 'https://argoproj.github.io/argo-helm'
-    chart: argo-cd
-    targetRevision: 8.3.3
-    helm:
-      valueFiles:
-        - $values/argocd/values.yaml
   sources:
     - repoURL: 'https://argoproj.github.io/argo-helm'
       chart: argo-cd
