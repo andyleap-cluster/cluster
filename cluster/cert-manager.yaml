@@ -8,9 +8,22 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/andyleap-cluster/cluster.git'
-    path: cert-manager
-    targetRevision: master
+    repoURL: 'https://charts.jetstack.io'
+    chart: cert-manager
+    targetRevision: v1.16.2
+    helm:
+      valueFiles:
+        - $values/cert-manager/values.yaml
+  sources:
+    - repoURL: 'https://charts.jetstack.io'
+      chart: cert-manager
+      targetRevision: v1.16.2
+      helm:
+        valueFiles:
+          - $values/cert-manager/values.yaml
+    - repoURL: 'https://github.com/andyleap-cluster/cluster.git'
+      targetRevision: master
+      ref: values
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: cert-manager

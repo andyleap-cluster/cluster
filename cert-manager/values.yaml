@@ -1,0 +1,23 @@
+# cert-manager Helm chart values
+# https://github.com/cert-manager/cert-manager/tree/master/deploy/charts/cert-manager
+
+crds:
+  enabled: true
+
+extraObjects:
+  - |
+    apiVersion: cert-manager.io/v1
+    kind: ClusterIssuer
+    metadata:
+      name: letsencrypt
+    spec:
+      acme:
+        server: https://acme-v02.api.letsencrypt.org/directory
+        email: letsencrypt@andyleap.dev
+        privateKeySecretRef:
+          name: letsencrypt-account-key
+        solvers:
+          - dns01:
+              webhook:
+                solverName: linode
+                groupName: acme.slicen.me
