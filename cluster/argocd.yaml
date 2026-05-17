@@ -8,9 +8,22 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/andyleap-cluster/cluster.git'
-    path: argocd
-    targetRevision: master
+    repoURL: 'https://argoproj.github.io/argo-helm'
+    chart: argo-cd
+    targetRevision: 8.3.3
+    helm:
+      valueFiles:
+        - $values/argocd/values.yaml
+  sources:
+    - repoURL: 'https://argoproj.github.io/argo-helm'
+      chart: argo-cd
+      targetRevision: 8.3.3
+      helm:
+        valueFiles:
+          - $values/argocd/values.yaml
+    - repoURL: 'https://github.com/andyleap-cluster/cluster.git'
+      targetRevision: master
+      ref: values
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: argocd
@@ -20,4 +33,4 @@ spec:
       prune: true
     syncOptions:
     - CreateNamespace=true
-
+    - ServerSideApply=true
