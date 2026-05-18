@@ -1,0 +1,36 @@
+# Kargo Helm chart values
+# https://github.com/akuity/kargo/tree/main/charts/kargo
+
+crds:
+  install: true
+  keep: true
+
+api:
+  # Admin account disabled until Phase 4 wires up the secret via Terraform.
+  # Kargo CRDs (Project/Warehouse/Stage) still work via kubectl in the meantime.
+  adminAccount:
+    enabled: false
+  host: kargo.andyleap.dev
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: false
+  # TLS terminated upstream by Traefik (Gateway API HTTPRoute, letsencrypt cert).
+  # Kargo API serves plain HTTP on port 80 inside the cluster.
+  tls:
+    enabled: false
+
+webhooksServer:
+  tls:
+    selfSignedCert: true
+
+controller:
+  argocd:
+    integrationEnabled: true
+    namespace: argocd
+
+managementController:
+  enabled: true
+
+garbageCollector:
+  enabled: true
