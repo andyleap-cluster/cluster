@@ -8,5 +8,5 @@ spec:
     - git:
         repoURL: https://github.com/kubernetes-sigs/gateway-api.git
         commitSelectionStrategy: SemVer
-        allowTagsRegexes:
-          - "^v1\\..*"
+        semverConstraint: ">=1.0.0 <2.0.0"
+        strictSemvers: true

@@ -12,4 +12,5 @@ spec:
     - image:
         repoURL: docker.io/traefik
         imageSelectionStrategy: SemVer
-        constraint: ">=3.0.0 <4.0.0"
+        semverConstraint: ">=3.0.0 <4.0.0"
+        strictSemvers: true

@@ -10,6 +10,11 @@ spec:
         name: cert-manager
       sources:
         direct: true
+    - origin:
+        kind: Warehouse
+        name: cluster-repo
+      sources:
+        direct: true
   promotionTemplate:
     spec:
       steps:
