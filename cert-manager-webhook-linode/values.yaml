@@ -18,7 +18,6 @@ deployment:
 
 image:
   repository: linode/cert-manager-webhook-linode
-  tag: v0.3.0
   pullPolicy: IfNotPresent
 
 service:
