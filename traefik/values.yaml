@@ -1,6 +1,10 @@
 # Traefik Helm Chart values
 # https://github.com/traefik/traefik-helm-chart
 
+# Image tag: a placeholder so Kargo's yaml-update can mutate this key.
+# Kargo writes the discovered version on every promotion. ArgoCD reads
+# from live, so this master value only matters as a fallback for
+# out-of-Kargo renders (e.g. helm template locally).
 image:
   tag: v3.7.1
 
@@ -24,8 +28,9 @@ ports:
       default: true
     exposedPort: 443
     protocol: TCP
-    tls:
-      enabled: true
+    http:
+      tls:
+        enabled: true
   traefik:
     port: 8080
     expose:
@@ -56,10 +61,6 @@ providers:
 # Gateway API - disable helm chart Gateway, we create it manually for full control
 gateway:
   enabled: false
-
-# Enable ping for health checks
-ping:
-  entryPoint: traefik
 
 # Disable dashboard exposure (access via port-forward if needed)
 ingressRoute:
