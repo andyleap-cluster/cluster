@@ -3,6 +3,8 @@ kind: Application
 metadata:
   name: kargo-projects
   namespace: argocd
+  annotations:
+    kargo.akuity.io/authorized-stage: "kargo-kargo-projects:main"
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:
@@ -10,7 +12,7 @@ spec:
   source:
     repoURL: 'https://github.com/andyleap-cluster/cluster.git'
     path: kargo-projects
-    targetRevision: master
+    targetRevision: live
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: default
