@@ -89,33 +89,3 @@ logs:
 gatewayClass:
   enabled: true
   name: traefik
-
-# Extra objects to deploy - Gateway resource for Gateway API
-# Note: Gateway listener ports must match the entry point ports (8000, 8443), not the exposed ports
-extraObjects:
-  - apiVersion: gateway.networking.k8s.io/v1
-    kind: Gateway
-    metadata:
-      name: traefik-gateway
-      namespace: traefik
-    spec:
-      gatewayClassName: traefik
-      listeners:
-        - name: web
-          port: 8000
-          protocol: HTTP
-          allowedRoutes:
-            namespaces:
-              from: All
-        - name: websecure
-          port: 8443
-          protocol: HTTPS
-          tls:
-            mode: Terminate
-            certificateRefs:
-              - kind: Secret
-                name: argocd-tls
-                namespace: argocd
-          allowedRoutes:
-            namespaces:
-              from: All
