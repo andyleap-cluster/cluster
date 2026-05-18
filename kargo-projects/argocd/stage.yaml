@@ -23,6 +23,11 @@ spec:
                 create: true
                 path: ./out
         # Sync this stage's owned slice from master to live, then apply the bump on top.
+        # Clear this stage's dir on live first so files removed from master
+        # don't linger.
+        - uses: git-clear
+          config:
+            path: ./out/argocd
         - uses: copy
           config:
             inPath: ./src/cluster/argocd.yaml

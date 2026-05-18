@@ -22,6 +22,9 @@ spec:
               - branch: live
                 create: true
                 path: ./out
+        - uses: git-clear
+          config:
+            path: ./out/traefik
         - uses: copy
           config:
             inPath: ./src/cluster/traefik.yaml
