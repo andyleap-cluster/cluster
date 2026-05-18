@@ -34,32 +34,13 @@ spec:
           config:
             inPath: ./src/kargo
             outPath: ./out/kargo
-        # Also mirror the kargo-projects/ directory so the project/warehouse/
-        # stage defs are available on live. Lets cluster/kargo-projects.yaml
-        # point at live for consistency with the other Apps.
-        - uses: git-clear
-          continueOnError: true
-          config:
-            path: ./out/kargo-projects
-        - uses: copy
-          config:
-            inPath: ./src/kargo-projects
-            outPath: ./out/kargo-projects
-        # Three single-file copies for unowned ArgoCD Application manifests.
-        # Putting them in this Stage's slice prevents the root cluster App
-        # from pruning the kargo/kargo-projects/cluster Apps after cutover.
+        # Copy this Stage's own ArgoCD App manifest. cluster/cluster.yaml
+        # is owned by the kargo-cluster pipeline; cluster/kargo-projects.yaml
+        # by kargo-kargo-projects.
         - uses: copy
           config:
             inPath: ./src/cluster/kargo.yaml
             outPath: ./out/cluster/kargo.yaml
-        - uses: copy
-          config:
-            inPath: ./src/cluster/kargo-projects.yaml
-            outPath: ./out/cluster/kargo-projects.yaml
-        - uses: copy
-          config:
-            inPath: ./src/cluster/cluster.yaml
-            outPath: ./out/cluster/cluster.yaml
         # Bump the kargo chart targetRevision to whatever the warehouse
         # discovered.
         - uses: yaml-update
