@@ -19,8 +19,7 @@ spec:
         mode: Terminate
         certificateRefs:
           - kind: Secret
-            name: argocd-tls
-            namespace: argocd
+            name: wildcard-andyleap-dev-tls
       allowedRoutes:
         namespaces:
           from: All

@@ -4,6 +4,4 @@ kind: Kustomization
 namespace: kargo
 
 resources:
-  - certificate.yaml
   - httproute.yaml
-  - referencegrant.yaml
