@@ -29,6 +29,12 @@ controller:
   argocd:
     integrationEnabled: true
     namespace: argocd
+  # Make Secrets in the `kargo` namespace (created by Terraform) available
+  # to every Kargo project. Otherwise each project's namespace would need
+  # its own copy of the cluster-repo-creds Secret.
+  globalCredentials:
+    namespaces:
+      - kargo
 
 managementController:
   enabled: true

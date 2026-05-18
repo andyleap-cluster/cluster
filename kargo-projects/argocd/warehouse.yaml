@@ -1,0 +1,11 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Warehouse
+metadata:
+  name: argocd
+  namespace: kargo-argocd
+spec:
+  subscriptions:
+    - chart:
+        repoURL: https://argoproj.github.io/argo-helm
+        name: argo-cd
+        semverConstraint: ">=8.0.0 <9.0.0"

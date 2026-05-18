@@ -1,0 +1,53 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: main
+  namespace: kargo-argocd
+spec:
+  requestedFreight:
+    - origin:
+        kind: Warehouse
+        name: argocd
+      sources:
+        direct: true
+  promotionTemplate:
+    spec:
+      steps:
+        - uses: git-clone
+          config:
+            repoURL: git@github.com:andyleap-cluster/cluster.git
+            checkout:
+              - branch: master
+                path: ./src
+              - branch: live
+                create: true
+                path: ./out
+        # Sync this stage's owned slice from master to live, then apply the bump on top.
+        - uses: copy
+          config:
+            inPath: ./src/cluster/argocd.yaml
+            outPath: ./out/cluster/argocd.yaml
+        - uses: copy
+          config:
+            inPath: ./src/argocd
+            outPath: ./out/argocd
+        - uses: yaml-update
+          config:
+            path: ./out/cluster/argocd.yaml
+            updates:
+              - key: spec.sources.0.targetRevision
+                value: ${{ chartFrom("https://argoproj.github.io/argo-helm", "argo-cd").Version }}
+        - uses: git-commit
+          config:
+            path: ./out
+            message: |
+              kargo: bump argocd to chart ${{ chartFrom("https://argoproj.github.io/argo-helm", "argo-cd").Version }}
+        - uses: git-push
+          config:
+            path: ./out
+            targetBranch: live
+        - uses: argocd-update
+          config:
+            apps:
+              - name: argocd
+                namespace: argocd
