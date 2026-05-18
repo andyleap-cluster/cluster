@@ -1,4 +1,4 @@
-name: 'Terraform Drift Detection'
+name: 'OpenTofu Drift Detection'
 
 on:
   schedule:
@@ -19,7 +19,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: ${{ (github.event_name == 'workflow_dispatch' && inputs.mode == 'apply') && 'terraform-state-apply' || format('terraform-drift-detect-{0}', github.ref) }}
+  group: ${{ (github.event_name == 'workflow_dispatch' && inputs.mode == 'apply') && 'opentofu-state-apply' || format('opentofu-drift-detect-{0}', github.ref) }}
   cancel-in-progress: ${{ github.event_name == 'schedule' }}
 
 jobs:
@@ -120,7 +120,7 @@ jobs:
             const fs = require('fs');
             const status = process.env.PLAN_STATUS;
             const runUrl = process.env.RUN_URL;
-            const label = 'terraform-drift';
+            const label = 'opentofu-drift';
             const { owner, repo } = context.repo;
 
             const existing = await github.paginate(
@@ -150,13 +150,13 @@ jobs:
             const plan = fs.readFileSync('./terraform/plan-output.txt', 'utf8');
             const ts = new Date().toISOString();
             const body = [
-              `## Terraform drift detected`,
+              `## OpenTofu drift detected`,
               ``,
               `- **Detected at:** ${ts}`,
               `- **Workflow run:** ${runUrl}`,
               `- **Commit:** ${context.sha}`,
               ``,
-              `Run the \`Terraform Drift Detection\` workflow with \`mode=apply\` to remediate, or open a PR touching \`terraform/\`.`,
+              `Run the \`OpenTofu Drift Detection\` workflow with \`mode=apply\` to remediate, or open a PR touching \`terraform/\`.`,
               ``,
               `<details><summary>Plan output</summary>`,
               ``,
@@ -170,7 +170,7 @@ jobs:
             if (existing.length === 0) {
               const created = await github.rest.issues.create({
                 owner, repo,
-                title: `Terraform drift detected (${ts.slice(0, 10)})`,
+                title: `OpenTofu drift detected (${ts.slice(0, 10)})`,
                 body,
                 labels: [label],
               });
