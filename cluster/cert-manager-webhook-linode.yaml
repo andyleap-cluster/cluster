@@ -17,7 +17,7 @@ spec:
         valueFiles:
           - $values/cert-manager-webhook-linode/values.yaml
     - repoURL: 'https://github.com/andyleap-cluster/cluster.git'
-      targetRevision: master
+      targetRevision: live
       ref: values
   destination:
     server: 'https://kubernetes.default.svc'
