@@ -11,8 +11,8 @@ spec:
         repoURL: https://github.com/linode/cert-manager-webhook-linode.git
         commitSelectionStrategy: SemVer
         allowTagsRegexes:
-          - "^v.*"
+          - "^v0\\..*"
     - image:
         repoURL: docker.io/linode/cert-manager-webhook-linode
         imageSelectionStrategy: SemVer
-        constraint: ">=0.3.0"
+        constraint: ">=0.3.0 <1.0.0"
