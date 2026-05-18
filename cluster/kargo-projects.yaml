@@ -22,3 +22,15 @@ spec:
       prune: true
     syncOptions:
     - ServerSideApply=true
+  ignoreDifferences:
+    # Kargo's controller defaults fields on Warehouse and Stage resources
+    # (freightCreationPolicy, interval, discoveryLimit, etc.). Ignore the
+    # `kargo` field manager's writes so ArgoCD doesn't churn.
+    - group: kargo.akuity.io
+      kind: Warehouse
+      managedFieldsManagers:
+        - kargo
+    - group: kargo.akuity.io
+      kind: Stage
+      managedFieldsManagers:
+        - kargo
