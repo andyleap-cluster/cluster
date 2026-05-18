@@ -10,11 +10,6 @@ spec:
         name: gateway-api
       sources:
         direct: true
-    - origin:
-        kind: Warehouse
-        name: cluster-repo
-      sources:
-        direct: true
   promotionTemplate:
     spec:
       steps:

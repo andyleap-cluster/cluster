@@ -3,5 +3,4 @@ kind: Kustomization
 resources:
 - project.yaml
 - warehouse.yaml
-- cluster-repo-warehouse.yaml
 - stage.yaml

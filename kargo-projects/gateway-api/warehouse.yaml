@@ -10,3 +10,8 @@ spec:
         commitSelectionStrategy: SemVer
         semverConstraint: ">=1.0.0 <2.0.0"
         strictSemvers: true
+    - git:
+        repoURL: https://github.com/andyleap-cluster/cluster.git
+        branch: master
+        commitSelectionStrategy: NewestFromBranch
+        strictSemvers: false
