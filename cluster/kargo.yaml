@@ -30,3 +30,12 @@ spec:
     syncOptions:
     - CreateNamespace=true
     - ServerSideApply=true
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      managedFieldsManagers:
+        - kube-controller-manager
+    - group: batch
+      kind: CronJob
+      managedFieldsManagers:
+        - kube-controller-manager

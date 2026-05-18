@@ -1,0 +1,212 @@
+name: 'OpenTofu Drift Detection'
+
+on:
+  schedule:
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'detect = plan + issue mgmt; apply = remediate (requires environment approval)'
+        type: choice
+        options:
+          - detect
+          - apply
+        default: detect
+
+permissions:
+  contents: read
+  issues: write
+  id-token: write
+
+concurrency:
+  group: ${{ (github.event_name == 'workflow_dispatch' && inputs.mode == 'apply') && 'opentofu-state-apply' || format('opentofu-drift-detect-{0}', github.ref) }}
+  cancel-in-progress: ${{ github.event_name == 'schedule' }}
+
+jobs:
+  drift:
+    name: 'Drift Detection'
+    runs-on: ubuntu-latest
+    environment: ${{ (github.event_name == 'workflow_dispatch' && inputs.mode == 'apply') && 'terraform' || '' }}
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./terraform
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "latest"
+
+      - name: Setup Python
+        run: uv python install 3.12
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: ~1.10
+          # The default wrapper script swallows tofu's exit code, breaking
+          # `tofu plan -detailed-exitcode` (we need rc=2 to mean drift).
+          tofu_wrapper: false
+
+      - name: Setup Kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_CONTENT }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Configure AWS CLI for S3 backend
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.LINODE_S3_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.LINODE_S3_SECRET_KEY }}
+        run: |
+          echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
+
+      - name: OpenTofu Init
+        run: tofu init -input=false
+        env:
+          LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
+          GITHUB_APP_ID: ${{ secrets.APP_ID }}
+          GITHUB_APP_INSTALLATION_ID: ${{ secrets.APP_INSTALLATION_ID }}
+          GITHUB_APP_PEM_FILE: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: OpenTofu Plan (detailed exit code)
+        id: plan
+        continue-on-error: true
+        env:
+          LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
+          GITHUB_APP_ID: ${{ secrets.APP_ID }}
+          GITHUB_APP_INSTALLATION_ID: ${{ secrets.APP_INSTALLATION_ID }}
+          GITHUB_APP_PEM_FILE: ${{ secrets.APP_PRIVATE_KEY }}
+        run: |
+          set +e
+          tofu plan -detailed-exitcode -no-color -input=false -out=tfplan
+          rc=$?
+          set -e
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+          case "$rc" in
+            0) echo "status=clean" >> "$GITHUB_OUTPUT" ;;
+            2) echo "status=drift" >> "$GITHUB_OUTPUT" ;;
+            *) echo "status=error" >> "$GITHUB_OUTPUT" ;;
+          esac
+          exit $rc
+
+      - name: Format Plan Output
+        if: steps.plan.outputs.status == 'drift'
+        run: |
+          tofu show -no-color tfplan > plan-raw.txt
+          sed -E 's/^(\s+)(\+|\-|\~)/\2\1/' plan-raw.txt > plan-output.txt
+          # GitHub issue body cap is 65536 chars; leave headroom for surrounding markdown.
+          if [ "$(wc -c < plan-output.txt)" -gt 60000 ]; then
+            head -c 60000 plan-output.txt > plan-output.trunc.txt
+            printf '\n\n[... truncated, see workflow logs for full output ...]\n' >> plan-output.trunc.txt
+            mv plan-output.trunc.txt plan-output.txt
+          fi
+
+      - name: Manage Drift Issue
+        if: github.event_name != 'workflow_dispatch' || inputs.mode == 'detect'
+        uses: actions/github-script@v7
+        env:
+          PLAN_STATUS: ${{ steps.plan.outputs.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const status = process.env.PLAN_STATUS;
+            const runUrl = process.env.RUN_URL;
+            const label = 'opentofu-drift';
+            const { owner, repo } = context.repo;
+
+            const existing = await github.paginate(
+              github.rest.issues.listForRepo,
+              { owner, repo, state: 'open', labels: label, per_page: 100 }
+            );
+
+            if (status === 'clean') {
+              for (const issue of existing) {
+                await github.rest.issues.createComment({
+                  owner, repo, issue_number: issue.number,
+                  body: `Drift resolved as of ${new Date().toISOString()}.\n\nLatest clean plan: ${runUrl}`,
+                });
+                await github.rest.issues.update({
+                  owner, repo, issue_number: issue.number, state: 'closed',
+                });
+                core.info(`Closed resolved drift issue #${issue.number}`);
+              }
+              return;
+            }
+
+            if (status !== 'drift') {
+              core.warning(`Plan status is "${status}"; skipping issue management.`);
+              return;
+            }
+
+            const plan = fs.readFileSync('./terraform/plan-output.txt', 'utf8');
+            const ts = new Date().toISOString();
+            const body = [
+              `## OpenTofu drift detected`,
+              ``,
+              `- **Detected at:** ${ts}`,
+              `- **Workflow run:** ${runUrl}`,
+              `- **Commit:** ${context.sha}`,
+              ``,
+              `Run the \`OpenTofu Drift Detection\` workflow with \`mode=apply\` to remediate, or open a PR touching \`terraform/\`.`,
+              ``,
+              `<details><summary>Plan output</summary>`,
+              ``,
+              '```diff',
+              plan,
+              '```',
+              ``,
+              `</details>`,
+            ].join('\n');
+
+            if (existing.length === 0) {
+              const created = await github.rest.issues.create({
+                owner, repo,
+                title: `OpenTofu drift detected (${ts.slice(0, 10)})`,
+                body,
+                labels: [label],
+              });
+              core.info(`Created drift issue #${created.data.number}`);
+              return;
+            }
+
+            existing.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+            const primary = existing[0];
+            await github.rest.issues.update({
+              owner, repo, issue_number: primary.number, body,
+            });
+            core.info(`Updated drift issue #${primary.number}`);
+            for (const extra of existing.slice(1)) {
+              await github.rest.issues.update({
+                owner, repo, issue_number: extra.number, state: 'closed',
+              });
+              core.info(`Closed duplicate drift issue #${extra.number}`);
+            }
+
+      - name: OpenTofu Apply
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'apply' && steps.plan.outputs.status != 'error'
+        env:
+          LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
+          GITHUB_APP_ID: ${{ secrets.APP_ID }}
+          GITHUB_APP_INSTALLATION_ID: ${{ secrets.APP_INSTALLATION_ID }}
+          GITHUB_APP_PEM_FILE: ${{ secrets.APP_PRIVATE_KEY }}
+        run: |
+          if [ "${{ steps.plan.outputs.status }}" = "clean" ]; then
+            echo "No drift; nothing to apply."
+            exit 0
+          fi
+          tofu apply -auto-approve -input=false tfplan
+
+      - name: Fail job if plan errored
+        if: steps.plan.outputs.status == 'error'
+        run: |
+          echo "::error::tofu plan failed with exit code ${{ steps.plan.outputs.exit_code }}"
+          exit 1
