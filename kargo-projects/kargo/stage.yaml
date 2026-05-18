@@ -1,0 +1,65 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: main
+  namespace: kargo-kargo
+spec:
+  requestedFreight:
+    - origin:
+        kind: Warehouse
+        name: kargo
+      sources:
+        direct: true
+  promotionTemplate:
+    spec:
+      steps:
+        - uses: git-clone
+          config:
+            repoURL: git@github.com:andyleap-cluster/cluster.git
+            checkout:
+              - branch: master
+                path: ./src
+              - branch: live
+                create: true
+                path: ./out
+        # Clear the kargo helm values directory so removed files on master
+        # don't linger on live.
+        - uses: git-clear
+          config:
+            path: ./out/kargo
+        - uses: copy
+          config:
+            inPath: ./src/kargo
+            outPath: ./out/kargo
+        # Three single-file copies for unowned ArgoCD Application manifests.
+        # Putting them in this Stage's slice prevents the root cluster App
+        # from pruning the kargo/kargo-projects/cluster Apps after cutover.
+        - uses: copy
+          config:
+            inPath: ./src/cluster/kargo.yaml
+            outPath: ./out/cluster/kargo.yaml
+        - uses: copy
+          config:
+            inPath: ./src/cluster/kargo-projects.yaml
+            outPath: ./out/cluster/kargo-projects.yaml
+        - uses: copy
+          config:
+            inPath: ./src/cluster/cluster.yaml
+            outPath: ./out/cluster/cluster.yaml
+        # Bump the kargo chart targetRevision to whatever the warehouse
+        # discovered.
+        - uses: yaml-update
+          config:
+            path: ./out/cluster/kargo.yaml
+            updates:
+              - key: spec.sources.0.targetRevision
+                value: ${{ chartFrom("oci://ghcr.io/akuity/kargo-charts/kargo").Version }}
+        - uses: git-commit
+          config:
+            path: ./out
+            message: |
+              kargo: bump kargo to chart ${{ chartFrom("oci://ghcr.io/akuity/kargo-charts/kargo").Version }}
+        - uses: git-push
+          config:
+            path: ./out
+            targetBranch: live
