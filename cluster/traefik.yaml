@@ -14,6 +14,11 @@ spec:
       chart: traefik
       targetRevision: 34.5.0
       helm:
+        # The traefik chart bundles older Gateway API CRDs in crds/. The
+        # gateway-api App owns the cluster's Gateway API CRDs (newer), and
+        # the cluster's safe-upgrades ValidatingAdmissionPolicy blocks
+        # downgrades. Skip the chart's CRDs.
+        skipCrds: true
         valueFiles:
           - $values/traefik/values.yaml
     - repoURL: 'https://github.com/andyleap-cluster/cluster.git'
