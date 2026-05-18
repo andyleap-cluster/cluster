@@ -1,9 +1,6 @@
 # Traefik Helm Chart values
 # https://github.com/traefik/traefik-helm-chart
 
-image:
-  tag: v3.2
-
 # Deployment configuration
 deployment:
   replicas: 1
@@ -24,8 +21,9 @@ ports:
       default: true
     exposedPort: 443
     protocol: TCP
-    tls:
-      enabled: true
+    http:
+      tls:
+        enabled: true
   traefik:
     port: 8080
     expose:
@@ -56,10 +54,6 @@ providers:
 # Gateway API - disable helm chart Gateway, we create it manually for full control
 gateway:
   enabled: false
-
-# Enable ping for health checks
-ping:
-  entryPoint: traefik
 
 # Disable dashboard exposure (access via port-forward if needed)
 ingressRoute:
