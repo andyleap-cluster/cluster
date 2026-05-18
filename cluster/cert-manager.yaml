@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd
+  annotations:
+    kargo.akuity.io/authorized-stage: "kargo-cert-manager:main"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - repoURL: 'https://charts.jetstack.io'
+      chart: cert-manager
+      targetRevision: v1.20.2
+      helm:
+        valueFiles:
+          - $values/cert-manager/values.yaml
+    - repoURL: 'https://github.com/andyleap-cluster/cluster.git'
+      targetRevision: master
+      ref: values
+    - repoURL: 'https://github.com/andyleap-cluster/cluster.git'
+      targetRevision: master
+      path: cert-manager/extras
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: cert-manager
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true
