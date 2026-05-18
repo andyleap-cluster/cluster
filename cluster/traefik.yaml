@@ -12,7 +12,7 @@ spec:
   sources:
     - repoURL: 'https://traefik.github.io/charts'
       chart: traefik
-      targetRevision: 34.5.0
+      targetRevision: 40.2.0
       helm:
         # The traefik chart bundles older Gateway API CRDs in crds/. The
         # gateway-api App owns the cluster's Gateway API CRDs (newer), and
