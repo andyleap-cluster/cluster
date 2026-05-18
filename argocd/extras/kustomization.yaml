@@ -4,6 +4,4 @@ kind: Kustomization
 namespace: argocd
 
 resources:
-  - certificate.yaml
   - httproute.yaml
-  - referencegrant.yaml
