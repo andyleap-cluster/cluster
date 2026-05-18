@@ -65,3 +65,21 @@ output "kargo_admin_password" {
   sensitive = true
   description = "Initial Kargo admin password. Retrieve with: tofu output -raw kargo_admin_password"
 }
+
+# Plaintext copy of the admin credentials for easy retrieval via kubectl.
+# Not consumed by the chart — kargo-api reads its hash + signing key from
+# the `kargo-api` Secret above.
+#
+#   kubectl -n kargo get secret kargo-admin-credentials \
+#     -o jsonpath='{.data.password}' | base64 -d
+resource "kubernetes_secret" "kargo_admin_credentials" {
+  metadata {
+    name      = "kargo-admin-credentials"
+    namespace = "kargo"
+  }
+
+  data = {
+    username = "admin"
+    password = random_password.kargo_admin.result
+  }
+}
