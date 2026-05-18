@@ -49,6 +49,9 @@ jobs:
         uses: opentofu/setup-opentofu@v1
         with:
           tofu_version: ~1.10
+          # The default wrapper script swallows tofu's exit code, breaking
+          # `tofu plan -detailed-exitcode` (we need rc=2 to mean drift).
+          tofu_wrapper: false
 
       - name: Setup Kubeconfig
         run: |
