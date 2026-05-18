@@ -1,0 +1,15 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Warehouse
+metadata:
+  name: cluster-repo
+  namespace: kargo-cert-manager-webhook-linode
+spec:
+  subscriptions:
+    # Triggers a promotion when the human-authored master branch advances,
+    # so master changes get copied into live without waiting on an upstream
+    # chart/image bump.
+    - git:
+        repoURL: https://github.com/andyleap-cluster/cluster.git
+        branch: master
+        commitSelectionStrategy: NewestFromBranch
+        strictSemvers: false
