@@ -34,6 +34,17 @@ spec:
           config:
             inPath: ./src/kargo
             outPath: ./out/kargo
+        # Also mirror the kargo-projects/ directory so the project/warehouse/
+        # stage defs are available on live. Lets cluster/kargo-projects.yaml
+        # point at live for consistency with the other Apps.
+        - uses: git-clear
+          continueOnError: true
+          config:
+            path: ./out/kargo-projects
+        - uses: copy
+          config:
+            inPath: ./src/kargo-projects
+            outPath: ./out/kargo-projects
         # Three single-file copies for unowned ArgoCD Application manifests.
         # Putting them in this Stage's slice prevents the root cluster App
         # from pruning the kargo/kargo-projects/cluster Apps after cutover.
