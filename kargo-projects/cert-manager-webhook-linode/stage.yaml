@@ -51,8 +51,3 @@ spec:
           config:
             path: ./out
             targetBranch: live
-        - uses: argocd-update
-          config:
-            apps:
-              - name: cert-manager-webhook-linode
-                namespace: argocd

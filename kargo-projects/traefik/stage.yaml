@@ -51,8 +51,3 @@ spec:
           config:
             path: ./out
             targetBranch: live
-        - uses: argocd-update
-          config:
-            apps:
-              - name: traefik
-                namespace: argocd
