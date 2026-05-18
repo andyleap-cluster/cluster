@@ -25,6 +25,18 @@ terraform {
       source  = "integrations/github"
       version = "~> 6.0"
     }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.6"
+    }
+    htpasswd = {
+      source  = "loafoe/htpasswd"
+      version = "~> 1.2"
+    }
   }
 }
 

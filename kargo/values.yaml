@@ -6,10 +6,11 @@ crds:
   keep: true
 
 api:
-  # Admin account disabled until Phase 4 wires up the secret via Terraform.
-  # Kargo CRDs (Project/Warehouse/Stage) still work via kubectl in the meantime.
   adminAccount:
-    enabled: false
+    enabled: true
+  # passwordHash + tokenSigningKey come from the Terraform-managed Secret.
+  secret:
+    name: kargo-api
   host: kargo.andyleap.dev
   service:
     type: ClusterIP
