@@ -1,0 +1,12 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Warehouse
+metadata:
+  name: gateway-api
+  namespace: kargo-gateway-api
+spec:
+  subscriptions:
+    - git:
+        repoURL: https://github.com/kubernetes-sigs/gateway-api.git
+        commitSelectionStrategy: SemVer
+        allowTagsRegexes:
+          - "^v1\\..*"

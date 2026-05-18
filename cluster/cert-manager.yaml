@@ -3,6 +3,8 @@ kind: Application
 metadata:
   name: cert-manager
   namespace: argocd
+  annotations:
+    kargo.akuity.io/authorized-stage: "kargo-cert-manager:main"
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:
