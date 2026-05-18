@@ -7,13 +7,6 @@ metadata:
   - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  source:
-    repoURL: 'https://traefik.github.io/charts'
-    chart: traefik
-    targetRevision: 34.4.1
-    helm:
-      valueFiles:
-        - $values/traefik/values.yaml
   sources:
     - repoURL: 'https://traefik.github.io/charts'
       chart: traefik

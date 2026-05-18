@@ -2,7 +2,7 @@ apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant
 metadata:
   name: allow-traefik-gateway
-  namespace: argocd
+  namespace: kargo
 spec:
   from:
     - group: gateway.networking.k8s.io
@@ -11,4 +11,4 @@ spec:
   to:
     - group: ""
       kind: Secret
-      name: argocd-tls
+      name: kargo-tls
