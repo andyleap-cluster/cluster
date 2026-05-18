@@ -35,6 +35,13 @@ controller:
   globalCredentials:
     namespaces:
       - kargo
+  # Serialize promotions cluster-wide. All Stages push to the same live
+  # branch, so concurrent promotions race and 3-of-4 lose on non-fast-forward.
+  # The default git-push retry just re-pushes the same commit so it doesn't
+  # rebase on conflict. One worker = no race.
+  reconcilers:
+    promotions:
+      maxConcurrentReconciles: 1
 
 managementController:
   enabled: true
