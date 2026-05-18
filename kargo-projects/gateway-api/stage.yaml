@@ -53,3 +53,8 @@ spec:
           config:
             path: ./out
             targetBranch: live
+        - uses: argocd-update
+          config:
+            apps:
+              - name: gateway-api
+                namespace: argocd
