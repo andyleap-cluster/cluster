@@ -6,4 +6,5 @@ resources:
   - cert-manager
   - cert-manager-webhook-linode
   - gateway-api
+  - kargo
   - traefik
