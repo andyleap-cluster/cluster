@@ -11,10 +11,6 @@ permissions:
   id-token: write
   actions: write
 
-concurrency:
-  group: terraform-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   detect-changes:
     name: 'Detect Changes'
@@ -44,6 +40,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: detect-changes
     if: needs.detect-changes.outputs.terraform_changed == 'true'
+    concurrency:
+      group: opentofu-pr-${{ github.ref }}
+      cancel-in-progress: true
     outputs:
       plan_hash: ${{ steps.upload.outputs.plan_hash }}
       plan_key: ${{ steps.upload.outputs.plan_key }}
@@ -212,6 +211,9 @@ jobs:
     environment: terraform
     needs: [detect-changes, plan]
     if: needs.plan.result == 'success' && needs.detect-changes.outputs.terraform_changed == 'true'
+    concurrency:
+      group: opentofu-state-apply
+      cancel-in-progress: false
 
     defaults:
       run:
