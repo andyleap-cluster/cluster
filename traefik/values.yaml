@@ -1,0 +1,91 @@
+# Traefik Helm Chart values
+# https://github.com/traefik/traefik-helm-chart
+
+image:
+  tag: v3.7.1
+
+# Deployment configuration
+deployment:
+  replicas: 1
+  revisionHistoryLimit: 1
+
+# Entry points configuration
+# Note: port is the container port (high port for non-root), exposedPort is the Service port
+ports:
+  web:
+    port: 8000
+    expose:
+      default: true
+    exposedPort: 80
+    protocol: TCP
+  websecure:
+    port: 8443
+    expose:
+      default: true
+    exposedPort: 443
+    protocol: TCP
+    tls:
+      enabled: true
+  traefik:
+    port: 8080
+    expose:
+      default: false
+
+# Service configuration
+service:
+  type: LoadBalancer
+
+# Resource limits
+resources:
+  requests:
+    cpu: 100m
+    memory: 64Mi
+  limits:
+    cpu: 300m
+    memory: 128Mi
+
+# Kubernetes providers
+providers:
+  kubernetesCRD:
+    enabled: false
+  kubernetesIngress:
+    enabled: false
+  kubernetesGateway:
+    enabled: true
+
+# Gateway API - disable helm chart Gateway, we create it manually for full control
+gateway:
+  enabled: false
+
+# Enable ping for health checks
+ping:
+  entryPoint: traefik
+
+# Disable dashboard exposure (access via port-forward if needed)
+ingressRoute:
+  dashboard:
+    enabled: false
+
+# Security context - use chart defaults for non-root operation
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+
+# Pod security context - run as non-root user (chart default)
+podSecurityContext:
+  runAsGroup: 65532
+  runAsNonRoot: true
+  runAsUser: 65532
+
+# Logging
+logs:
+  general:
+    level: INFO
+
+# GatewayClass configuration - Traefik Helm chart creates this automatically
+gatewayClass:
+  enabled: true
+  name: traefik
