@@ -23,6 +23,9 @@ spec:
                 create: true
                 path: ./out
         - uses: git-clear
+          # First promotion against a fresh live has no ./out/cert-manager — that's
+          # expected; ignore the resulting "no such file or directory" error.
+          continueOnError: true
           config:
             path: ./out/cert-manager
         - uses: copy

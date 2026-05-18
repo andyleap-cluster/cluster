@@ -25,6 +25,9 @@ spec:
         # Clear the kargo helm values directory so removed files on master
         # don't linger on live.
         - uses: git-clear
+          # First promotion against a fresh live has no ./out/kargo — that's
+          # expected; ignore the resulting "no such file or directory" error.
+          continueOnError: true
           config:
             path: ./out/kargo
         - uses: copy
