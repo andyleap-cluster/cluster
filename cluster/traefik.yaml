@@ -17,10 +17,10 @@ spec:
         valueFiles:
           - $values/traefik/values.yaml
     - repoURL: 'https://github.com/andyleap-cluster/cluster.git'
-      targetRevision: master
+      targetRevision: live
       ref: values
     - repoURL: 'https://github.com/andyleap-cluster/cluster.git'
-      targetRevision: master
+      targetRevision: live
       path: traefik/extras
   destination:
     server: 'https://kubernetes.default.svc'
