@@ -1,0 +1,21 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Warehouse
+metadata:
+  name: traefik
+  namespace: kargo-traefik
+spec:
+  subscriptions:
+    - chart:
+        repoURL: https://traefik.github.io/charts
+        name: traefik
+        semverConstraint: ">=34.0.0 <35.0.0"
+    - image:
+        repoURL: docker.io/traefik
+        imageSelectionStrategy: SemVer
+        semverConstraint: ">=3.0.0 <4.0.0"
+        strictSemvers: true
+    - git:
+        repoURL: https://github.com/andyleap-cluster/cluster.git
+        branch: master
+        commitSelectionStrategy: NewestFromBranch
+        strictSemvers: false

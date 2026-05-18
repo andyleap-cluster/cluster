@@ -1,0 +1,9 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: ProjectConfig
+metadata:
+  name: kargo-cert-manager-webhook-linode
+  namespace: kargo-cert-manager-webhook-linode
+spec:
+  promotionPolicies:
+    - stage: main
+      autoPromotionEnabled: true

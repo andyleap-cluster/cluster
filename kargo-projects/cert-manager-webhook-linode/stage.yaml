@@ -1,0 +1,59 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: main
+  namespace: kargo-cert-manager-webhook-linode
+spec:
+  requestedFreight:
+    - origin:
+        kind: Warehouse
+        name: cert-manager-webhook-linode
+      sources:
+        direct: true
+  promotionTemplate:
+    spec:
+      steps:
+        - uses: git-clone
+          config:
+            repoURL: git@github.com:andyleap-cluster/cluster.git
+            checkout:
+              - branch: master
+                path: ./src
+              - branch: live
+                create: true
+                path: ./out
+        - uses: git-clear
+          # First promotion against a fresh live has no ./out/cert-manager-webhook-linode — that's
+          # expected; ignore the resulting "no such file or directory" error.
+          continueOnError: true
+          config:
+            path: ./out/cert-manager-webhook-linode
+        - uses: copy
+          config:
+            inPath: ./src/cluster/cert-manager-webhook-linode.yaml
+            outPath: ./out/cluster/cert-manager-webhook-linode.yaml
+        - uses: copy
+          config:
+            inPath: ./src/cert-manager-webhook-linode
+            outPath: ./out/cert-manager-webhook-linode
+        - uses: yaml-update
+          config:
+            path: ./out/cluster/cert-manager-webhook-linode.yaml
+            updates:
+              - key: spec.sources.0.targetRevision
+                value: ${{ commitFrom("https://github.com/linode/cert-manager-webhook-linode.git").Tag }}
+        - uses: yaml-update
+          config:
+            path: ./out/cert-manager-webhook-linode/values.yaml
+            updates:
+              - key: image.tag
+                value: ${{ imageFrom("docker.io/linode/cert-manager-webhook-linode").Tag }}
+        - uses: git-commit
+          config:
+            path: ./out
+            message: |
+              kargo: bump cert-manager-webhook-linode to ${{ commitFrom("https://github.com/linode/cert-manager-webhook-linode.git").Tag }} / image ${{ imageFrom("docker.io/linode/cert-manager-webhook-linode").Tag }}
+        - uses: git-push
+          config:
+            path: ./out
+            targetBranch: live

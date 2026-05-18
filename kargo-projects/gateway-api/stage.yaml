@@ -1,0 +1,55 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: main
+  namespace: kargo-gateway-api
+spec:
+  requestedFreight:
+    - origin:
+        kind: Warehouse
+        name: gateway-api
+      sources:
+        direct: true
+  promotionTemplate:
+    spec:
+      steps:
+        - uses: git-clone
+          config:
+            repoURL: git@github.com:andyleap-cluster/cluster.git
+            checkout:
+              - branch: master
+                path: ./src
+              - branch: live
+                create: true
+                path: ./out
+        - uses: git-clear
+          # First promotion against a fresh live has no ./out/gateway-api — that's
+          # expected; ignore the resulting "no such file or directory" error.
+          continueOnError: true
+          config:
+            path: ./out/gateway-api
+        - uses: copy
+          config:
+            inPath: ./src/cluster/gateway-api.yaml
+            outPath: ./out/cluster/gateway-api.yaml
+        - uses: copy
+          config:
+            inPath: ./src/gateway-api
+            outPath: ./out/gateway-api
+        # Rewrite the standard-install.yaml URL in kustomization.yaml to the
+        # newly-discovered git tag. resources.0 is the list element.
+        - uses: yaml-update
+          config:
+            path: ./out/gateway-api/kustomization.yaml
+            updates:
+              - key: resources.0
+                value: https://github.com/kubernetes-sigs/gateway-api/releases/download/${{ commitFrom("https://github.com/kubernetes-sigs/gateway-api.git").Tag }}/standard-install.yaml
+        - uses: git-commit
+          config:
+            path: ./out
+            message: |
+              kargo: bump gateway-api to ${{ commitFrom("https://github.com/kubernetes-sigs/gateway-api.git").Tag }}
+        - uses: git-push
+          config:
+            path: ./out
+            targetBranch: live

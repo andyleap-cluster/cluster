@@ -1,0 +1,59 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: main
+  namespace: kargo-traefik
+spec:
+  requestedFreight:
+    - origin:
+        kind: Warehouse
+        name: traefik
+      sources:
+        direct: true
+  promotionTemplate:
+    spec:
+      steps:
+        - uses: git-clone
+          config:
+            repoURL: git@github.com:andyleap-cluster/cluster.git
+            checkout:
+              - branch: master
+                path: ./src
+              - branch: live
+                create: true
+                path: ./out
+        - uses: git-clear
+          # First promotion against a fresh live has no ./out/traefik — that's
+          # expected; ignore the resulting "no such file or directory" error.
+          continueOnError: true
+          config:
+            path: ./out/traefik
+        - uses: copy
+          config:
+            inPath: ./src/cluster/traefik.yaml
+            outPath: ./out/cluster/traefik.yaml
+        - uses: copy
+          config:
+            inPath: ./src/traefik
+            outPath: ./out/traefik
+        - uses: yaml-update
+          config:
+            path: ./out/cluster/traefik.yaml
+            updates:
+              - key: spec.sources.0.targetRevision
+                value: ${{ chartFrom("https://traefik.github.io/charts", "traefik").Version }}
+        - uses: yaml-update
+          config:
+            path: ./out/traefik/values.yaml
+            updates:
+              - key: image.tag
+                value: ${{ imageFrom("docker.io/traefik").Tag }}
+        - uses: git-commit
+          config:
+            path: ./out
+            message: |
+              kargo: bump traefik to chart ${{ chartFrom("https://traefik.github.io/charts", "traefik").Version }} / image ${{ imageFrom("docker.io/traefik").Tag }}
+        - uses: git-push
+          config:
+            path: ./out
+            targetBranch: live

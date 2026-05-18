@@ -1,0 +1,24 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Warehouse
+metadata:
+  name: cert-manager-webhook-linode
+  namespace: kargo-cert-manager-webhook-linode
+spec:
+  subscriptions:
+    # The chart for this webhook is hosted in a git repo, not a chart registry,
+    # so we track the repo's git tags as the "chart version".
+    - git:
+        repoURL: https://github.com/linode/cert-manager-webhook-linode.git
+        commitSelectionStrategy: SemVer
+        semverConstraint: ">=0.3.0 <1.0.0"
+        strictSemvers: true
+    - image:
+        repoURL: docker.io/linode/cert-manager-webhook-linode
+        imageSelectionStrategy: SemVer
+        semverConstraint: ">=0.3.0 <1.0.0"
+        strictSemvers: true
+    - git:
+        repoURL: https://github.com/andyleap-cluster/cluster.git
+        branch: master
+        commitSelectionStrategy: NewestFromBranch
+        strictSemvers: false
