@@ -1,0 +1,14 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Warehouse
+metadata:
+  name: kargo-projects
+  namespace: kargo-kargo-projects
+spec:
+  subscriptions:
+    # No upstream chart/image — this pipeline just mirrors human-authored
+    # project defs from master to live.
+    - git:
+        repoURL: https://github.com/andyleap-cluster/cluster.git
+        branch: master
+        commitSelectionStrategy: NewestFromBranch
+        strictSemvers: false

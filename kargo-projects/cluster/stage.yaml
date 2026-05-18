@@ -1,0 +1,37 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: main
+  namespace: kargo-cluster
+spec:
+  requestedFreight:
+    - origin:
+        kind: Warehouse
+        name: cluster
+      sources:
+        direct: true
+  promotionTemplate:
+    spec:
+      steps:
+        - uses: git-clone
+          config:
+            repoURL: git@github.com:andyleap-cluster/cluster.git
+            checkout:
+              - branch: master
+                path: ./src
+              - branch: live
+                create: true
+                path: ./out
+        - uses: copy
+          config:
+            inPath: ./src/cluster/cluster.yaml
+            outPath: ./out/cluster/cluster.yaml
+        - uses: git-commit
+          config:
+            path: ./out
+            message: |
+              kargo: mirror cluster.yaml to live
+        - uses: git-push
+          config:
+            path: ./out
+            targetBranch: live
