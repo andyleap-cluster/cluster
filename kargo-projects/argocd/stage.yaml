@@ -26,6 +26,9 @@ spec:
         # Clear this stage's dir on live first so files removed from master
         # don't linger.
         - uses: git-clear
+          # First promotion against a fresh live has no ./out/argocd — that's
+          # expected; ignore the resulting "no such file or directory" error.
+          continueOnError: true
           config:
             path: ./out/argocd
         - uses: copy
