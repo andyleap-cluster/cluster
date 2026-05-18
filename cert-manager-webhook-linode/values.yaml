@@ -18,6 +18,10 @@ deployment:
 
 image:
   repository: linode/cert-manager-webhook-linode
+  # Placeholder so Kargo's yaml-update can mutate this key. Kargo writes
+  # the discovered version on every promotion. The chart's template does
+  # `{{ .repository }}:{{ .tag }}` with no fallback, so this must be
+  # non-empty for out-of-Kargo renders.
   tag: v0.4.1
   pullPolicy: IfNotPresent
 
