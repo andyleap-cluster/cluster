@@ -2,12 +2,6 @@
 # - SSH deploy key on the cluster repo so Kargo can push to the `live` branch
 # - Admin credentials Secret consumed by the kargo-api Deployment
 
-resource "kubernetes_namespace" "kargo" {
-  metadata {
-    name = "kargo"
-  }
-}
-
 # --- Git deploy key ---------------------------------------------------------
 
 resource "tls_private_key" "kargo_deploy" {
@@ -24,7 +18,7 @@ resource "github_repository_deploy_key" "kargo" {
 resource "kubernetes_secret" "kargo_repo_creds" {
   metadata {
     name      = "cluster-repo-creds"
-    namespace = kubernetes_namespace.kargo.metadata[0].name
+    namespace = "kargo"
     labels = {
       "kargo.akuity.io/cred-type" = "git"
     }
@@ -57,7 +51,7 @@ resource "random_password" "kargo_admin_token_signing_key" {
 resource "kubernetes_secret" "kargo_api" {
   metadata {
     name      = "kargo-api"
-    namespace = kubernetes_namespace.kargo.metadata[0].name
+    namespace = "kargo"
   }
 
   data = {
