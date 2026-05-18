@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: 'https://github.com/andyleap-cluster/cluster.git'
     path: cluster
-    targetRevision: master
+    targetRevision: live
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: argocd

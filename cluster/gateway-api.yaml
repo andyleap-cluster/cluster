@@ -12,7 +12,7 @@ spec:
   source:
     repoURL: 'https://github.com/andyleap-cluster/cluster.git'
     path: gateway-api
-    targetRevision: master
+    targetRevision: live
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: default
