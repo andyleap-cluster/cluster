@@ -1,0 +1,14 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Warehouse
+metadata:
+  name: cluster
+  namespace: kargo-cluster
+spec:
+  subscriptions:
+    # No upstream — the root cluster ArgoCD App's manifest is purely
+    # human-authored. Mirror master to live on each commit.
+    - git:
+        repoURL: https://github.com/andyleap-cluster/cluster.git
+        branch: master
+        commitSelectionStrategy: NewestFromBranch
+        strictSemvers: false
