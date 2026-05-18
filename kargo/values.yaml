@@ -1,0 +1,50 @@
+# Kargo Helm chart values
+# https://github.com/akuity/kargo/tree/main/charts/kargo
+
+crds:
+  install: true
+  keep: true
+
+api:
+  adminAccount:
+    enabled: true
+  # passwordHash + tokenSigningKey come from the Terraform-managed Secret.
+  secret:
+    name: kargo-api
+  host: kargo.andyleap.dev
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: false
+  # TLS terminated upstream by Traefik (Gateway API HTTPRoute, letsencrypt cert).
+  # Kargo API serves plain HTTP on port 80 inside the cluster.
+  tls:
+    enabled: false
+
+webhooksServer:
+  tls:
+    selfSignedCert: true
+
+controller:
+  argocd:
+    integrationEnabled: true
+    namespace: argocd
+  # Make Secrets in the `kargo` namespace (created by Terraform) available
+  # to every Kargo project. Otherwise each project's namespace would need
+  # its own copy of the cluster-repo-creds Secret.
+  globalCredentials:
+    namespaces:
+      - kargo
+  # Serialize promotions cluster-wide. All Stages push to the same live
+  # branch, so concurrent promotions race and 3-of-4 lose on non-fast-forward.
+  # The default git-push retry just re-pushes the same commit so it doesn't
+  # rebase on conflict. One worker = no race.
+  reconcilers:
+    promotions:
+      maxConcurrentReconciles: 1
+
+managementController:
+  enabled: true
+
+garbageCollector:
+  enabled: true
