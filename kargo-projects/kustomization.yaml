@@ -6,7 +6,7 @@ resources:
   - cert-manager
   - cert-manager-webhook-linode
   - cluster
-  - gateway-api
   - kargo
   - kargo-projects
   - traefik
+  - traefik-crds

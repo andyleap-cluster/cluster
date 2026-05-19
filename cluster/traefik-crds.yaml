@@ -1,35 +1,30 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: traefik
+  name: traefik-crds
   namespace: argocd
   annotations:
-    kargo.akuity.io/authorized-stage: "kargo-traefik:main"
+    kargo.akuity.io/authorized-stage: "kargo-traefik-crds:main"
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   sources:
     - repoURL: 'https://traefik.github.io/charts'
-      chart: traefik
-      targetRevision: 34.4.1
+      chart: traefik-crds
+      targetRevision: 1.18.0
       helm:
-        # CRDs are owned by the traefik-crds App; don't double-install.
-        skipCrds: true
         valueFiles:
-          - $values/traefik/values.yaml
+          - $values/traefik-crds/values.yaml
     - repoURL: 'https://github.com/andyleap-cluster/cluster.git'
       targetRevision: live
       ref: values
-    - repoURL: 'https://github.com/andyleap-cluster/cluster.git'
-      targetRevision: live
-      path: traefik/extras
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: traefik
+    namespace: default
   syncPolicy:
     automated:
       selfHeal: true
       prune: true
     syncOptions:
-    - CreateNamespace=true
+    - ServerSideApply=true

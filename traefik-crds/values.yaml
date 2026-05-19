@@ -1,0 +1,17 @@
+# traefik-crds Helm chart values
+# https://github.com/traefik/traefik-helm-chart/tree/master/traefik-crds
+#
+# This chart installs CRDs for Traefik and (optionally) other groups.
+# We use it to own the cluster's Traefik CRDs (Middleware, IngressRoute,
+# etc.) and Gateway API CRDs in a single place; the main Traefik chart
+# is configured with `skipCrds: true` to avoid double-install.
+
+traefik: true                  # Middleware, IngressRoute, TLSStore, ...
+gatewayAPI: true               # Gateway API standard channel
+gatewayAPIExperimental: false  # mutually exclusive with gatewayAPI
+knative: false
+hub: false
+
+# Keep CRDs in the cluster even if the chart is uninstalled, so that
+# in-flight Gateway/HTTPRoute/Middleware objects survive a bad apply.
+deleteOnUninstall: false
