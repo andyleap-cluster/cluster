@@ -43,7 +43,9 @@ resource "kubernetes_secret" "argocd_oidc" {
   }
 
   data = {
-    clientID     = pocketid_client.argocd.client_id
+    # `.id` holds the auto-generated OIDC client identifier; `.client_id`
+    # only carries a value when set as an input on the resource.
+    clientID     = pocketid_client.argocd.id
     clientSecret = pocketid_client.argocd.client_secret
   }
 }
