@@ -1,15 +1,14 @@
 apiVersion: kargo.akuity.io/v1alpha1
 kind: Warehouse
 metadata:
-  name: gateway-api
-  namespace: kargo-gateway-api
+  name: traefik-crds
+  namespace: kargo-traefik-crds
 spec:
   subscriptions:
-    - git:
-        repoURL: https://github.com/kubernetes-sigs/gateway-api.git
-        commitSelectionStrategy: SemVer
-        semverConstraint: ">=1.0.0 <2.0.0"
-        strictSemvers: true
+    - chart:
+        repoURL: https://traefik.github.io/charts
+        name: traefik-crds
+        semverConstraint: ">=1.18.0 <2.0.0"
     - git:
         repoURL: https://github.com/andyleap-cluster/cluster.git
         branch: master

@@ -1,8 +1,8 @@
 apiVersion: kargo.akuity.io/v1alpha1
 kind: ProjectConfig
 metadata:
-  name: kargo-gateway-api
-  namespace: kargo-gateway-api
+  name: kargo-traefik-crds
+  namespace: kargo-traefik-crds
 spec:
   promotionPolicies:
     - stage: main

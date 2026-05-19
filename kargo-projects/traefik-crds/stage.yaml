@@ -2,12 +2,12 @@ apiVersion: kargo.akuity.io/v1alpha1
 kind: Stage
 metadata:
   name: main
-  namespace: kargo-gateway-api
+  namespace: kargo-traefik-crds
 spec:
   requestedFreight:
     - origin:
         kind: Warehouse
-        name: gateway-api
+        name: traefik-crds
       sources:
         direct: true
   promotionTemplate:
@@ -23,32 +23,30 @@ spec:
                 create: true
                 path: ./out
         - uses: git-clear
-          # First promotion against a fresh live has no ./out/gateway-api — that's
+          # First promotion against a fresh live has no ./out/traefik-crds — that's
           # expected; ignore the resulting "no such file or directory" error.
           continueOnError: true
           config:
-            path: ./out/gateway-api
+            path: ./out/traefik-crds
         - uses: copy
           config:
-            inPath: ./src/cluster/gateway-api.yaml
-            outPath: ./out/cluster/gateway-api.yaml
+            inPath: ./src/cluster/traefik-crds.yaml
+            outPath: ./out/cluster/traefik-crds.yaml
         - uses: copy
           config:
-            inPath: ./src/gateway-api
-            outPath: ./out/gateway-api
-        # Rewrite the standard-install.yaml URL in kustomization.yaml to the
-        # newly-discovered git tag. resources.0 is the list element.
+            inPath: ./src/traefik-crds
+            outPath: ./out/traefik-crds
         - uses: yaml-update
           config:
-            path: ./out/gateway-api/kustomization.yaml
+            path: ./out/cluster/traefik-crds.yaml
             updates:
-              - key: resources.0
-                value: https://github.com/kubernetes-sigs/gateway-api/releases/download/${{ commitFrom("https://github.com/kubernetes-sigs/gateway-api.git").Tag }}/standard-install.yaml
+              - key: spec.sources.0.targetRevision
+                value: ${{ chartFrom("https://traefik.github.io/charts", "traefik-crds").Version }}
         - uses: git-commit
           config:
             path: ./out
             message: |
-              kargo: bump gateway-api to ${{ commitFrom("https://github.com/kubernetes-sigs/gateway-api.git").Tag }}
+              kargo: bump traefik-crds to chart ${{ chartFrom("https://traefik.github.io/charts", "traefik-crds").Version }}
         - uses: git-push
           config:
             path: ./out
@@ -56,5 +54,5 @@ spec:
         - uses: argocd-update
           config:
             apps:
-              - name: gateway-api
+              - name: traefik-crds
                 namespace: argocd
