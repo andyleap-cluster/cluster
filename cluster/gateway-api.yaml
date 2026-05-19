@@ -3,10 +3,11 @@ kind: Application
 metadata:
   name: gateway-api
   namespace: argocd
+  # Retirement prep: prune:false and no finalizer let the next PR delete
+  # this Application without cascade-deleting its CRDs, so traefik-crds can
+  # adopt them in place.
   annotations:
     kargo.akuity.io/authorized-stage: "kargo-gateway-api:main"
-  finalizers:
-  - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
@@ -19,6 +20,6 @@ spec:
   syncPolicy:
     automated:
       selfHeal: true
-      prune: true
+      prune: false
     syncOptions:
     - ServerSideApply=true
