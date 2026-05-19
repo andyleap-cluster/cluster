@@ -18,8 +18,13 @@ resource "pocketid_group" "kargo_admins" {
 }
 
 resource "pocketid_client" "kargo" {
-  name      = "Kargo"
-  client_id = "kargo"
+  name = "Kargo"
+
+  # NB: do not set `client_id` here -- the trozz/pocketid provider
+  # sends it as JSON `clientId`, but Pocket ID's API expects `id`,
+  # so the custom value is silently ignored and Pocket ID
+  # auto-generates a UUID instead. The auto-generated value is
+  # exposed via `.id` and threaded into the Secret below.
 
   # Kargo's UI sets redirect_uri = window.location.origin + pathname at
   # login-click time, which is typically /login. Register both /login
@@ -36,4 +41,21 @@ resource "pocketid_client" "kargo" {
   is_public    = true
   pkce_enabled = true
   launch_url   = "https://kargo.andyleap.dev"
+}
+
+# Override the OIDC_CLIENT_ID env var that the chart emits into the
+# kargo-api ConfigMap. Kargo's chart concatenates api.envFrom AFTER
+# its built-in configmap/secret entries, and pod env merging makes
+# the later source win on key collisions -- so mounting this Secret
+# via api.envFrom in kargo/values.yaml swaps the placeholder for
+# Pocket ID's actual auto-generated client id.
+resource "kubernetes_secret" "kargo_oidc" {
+  metadata {
+    name      = "kargo-oidc"
+    namespace = "kargo"
+  }
+
+  data = {
+    OIDC_CLIENT_ID = pocketid_client.kargo.id
+  }
 }
