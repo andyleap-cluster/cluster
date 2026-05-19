@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: pocket-id
+
+resources:
+  - configmap.yaml
+  - service.yaml
+  - statefulset.yaml
+  - httproute.yaml
+
+# Kargo's kargo-pocket-id:main Stage rewrites images.0.newTag on each
+# promotion. The bootstrap Secret (ENCRYPTION_KEY) lives in Terraform,
+# not here, so this kustomization intentionally does not include it.
+images:
+  - name: ghcr.io/pocket-id/pocket-id
+    newTag: v2.6.2
