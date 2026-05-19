@@ -1,14 +1,12 @@
-# Pocket ID bootstrap secret
+# Pocket ID bootstrap
 #
-# ENCRYPTION_KEY is set ONCE at first deploy and must NEVER change
-# (rotating it would render existing encrypted-at-rest data unrecoverable).
-# Terraform owns it via random_password so the state is the source of
-# truth across rebuilds and the operator never has to touch it.
+# ENCRYPTION_KEY is generated once and lives in TF state forever; rotating
+# it would orphan all encrypted-at-rest data in Pocket ID's SQLite DB.
 #
-# The pocket-id ArgoCD Application has CreateNamespace=true so it can
-# create the namespace if Terraform hasn't yet. The kubernetes_namespace
-# resource here is just to make TF apply idempotent regardless of
-# ordering.
+# Pocket ID's storage strategy is SQLite-on-emptyDir replicated to Linode
+# Object Storage via Litestream (init container restores on pod start,
+# sidecar replicates continuously). LKE block-storage volumes have a
+# minimum size that makes them expensive for tiny datasets like this.
 
 resource "kubernetes_namespace" "pocket_id" {
   metadata {
@@ -21,8 +19,23 @@ resource "random_password" "pocket_id_encryption_key" {
   special = false
 }
 
-# Pocket ID reads its config from env vars; the StatefulSet wires this
-# Secret via envFrom so each key becomes its own env var.
+resource "linode_object_storage_bucket" "pocket_id_backups" {
+  region = "us-sea"
+  label  = "andyleap-dev-pocket-id-backups"
+  acl    = "private"
+}
+
+# Read-write access key scoped to just the backups bucket; consumed by
+# Litestream in the pocket-id StatefulSet.
+resource "linode_object_storage_key" "pocket_id_litestream" {
+  label = "pocket-id-litestream"
+  bucket_access {
+    bucket_name = linode_object_storage_bucket.pocket_id_backups.label
+    region      = "us-sea"
+    permissions = "read_write"
+  }
+}
+
 resource "kubernetes_secret" "pocket_id_bootstrap" {
   metadata {
     name      = "pocket-id-bootstrap"
@@ -30,6 +43,8 @@ resource "kubernetes_secret" "pocket_id_bootstrap" {
   }
 
   data = {
-    ENCRYPTION_KEY = random_password.pocket_id_encryption_key.result
+    ENCRYPTION_KEY               = random_password.pocket_id_encryption_key.result
+    LITESTREAM_ACCESS_KEY_ID     = linode_object_storage_key.pocket_id_litestream.access_key
+    LITESTREAM_SECRET_ACCESS_KEY = linode_object_storage_key.pocket_id_litestream.secret_key
   }
 }
