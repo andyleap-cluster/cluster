@@ -1,16 +1,22 @@
-# Kargo OIDC client + RBAC group in Pocket ID.
+# Kargo OIDC client + RBAC group in Pocket ID, plus the kargo-oidc
+# Secret that threads Pocket ID's auto-generated client ID into the
+# Kargo API Deployment.
 #
-# Unlike ArgoCD, Kargo's OIDC implementation is PKCE-only and doesn't
-# use a client_secret -- so this file does NOT create a kubernetes_secret.
-# kargo/values.yaml references the client_id directly. We pin the
-# client_id input to a stable string so the value can be hardcoded in
-# the chart values without the chicken-and-egg of "TF generates an ID
-# that values.yaml needs to know at apply time."
+# Kargo's OIDC is PKCE-only -- no client_secret to manage. We'd
+# normally pin a stable custom client_id ("kargo") so values.yaml
+# could hardcode it, but the trozz/pocketid provider sends the
+# custom field under JSON `clientId` while Pocket ID's API expects
+# `id`, so the custom value is silently ignored and Pocket ID
+# auto-generates a UUID instead. To avoid hardcoding that UUID in
+# values.yaml, we write it into a Secret that the chart mounts via
+# api.envFrom; pod env merging makes the Secret's OIDC_CLIENT_ID
+# override the placeholder the chart emits into kargo-api's
+# ConfigMap.
 #
-# Group-based RBAC: members of `kargo-admins` get Kargo admin privileges
-# via the chart's api.oidc.admins.claims.groups mapping (no K8s
-# ClusterRoleBinding plumbing required -- Kargo does its own RBAC
-# internally from the OIDC claims).
+# Group-based RBAC: members of `kargo-admins` get Kargo admin
+# privileges via the chart's api.oidc.admins.claims.groups mapping
+# (no K8s ClusterRoleBinding plumbing required -- Kargo does its
+# own RBAC internally from the OIDC claims).
 
 resource "pocketid_group" "kargo_admins" {
   name          = "kargo-admins"
