@@ -6,6 +6,16 @@ configs:
     server.insecure: true
 
   cm:
+    # Server-side diff: ArgoCD asks the apiserver for a dry-run
+    # apply and compares the predicted result to live state, so
+    # apiserver-defaulted fields (StatefulSet's podManagementPolicy,
+    # persistentVolumeClaimRetentionPolicy, etc.) stop showing up
+    # as drift across every Application. Respects Kubernetes's
+    # field ownership model rather than comparing raw manifests
+    # byte-for-byte.
+    resource.compareoptions: |
+      serverSideDiff: true
+
     # Public URL of ArgoCD; required for OIDC redirect URLs.
     url: https://argocd.andyleap.dev
 
