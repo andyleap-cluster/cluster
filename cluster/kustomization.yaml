@@ -17,5 +17,6 @@ resources:
   - cluster.yaml
   - kargo-projects.yaml
   - kargo.yaml
+  - pocket-id.yaml
   - traefik-crds.yaml
   - traefik.yaml

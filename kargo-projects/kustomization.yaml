@@ -8,5 +8,6 @@ resources:
   - cluster
   - kargo
   - kargo-projects
+  - pocket-id
   - traefik
   - traefik-crds
