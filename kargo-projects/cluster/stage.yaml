@@ -26,11 +26,18 @@ spec:
           config:
             inPath: ./src/cluster/cluster.yaml
             outPath: ./out/cluster/cluster.yaml
+        # kustomization.yaml is what makes per-app retirements propagate
+        # to live: ArgoCD prunes Applications removed from the resources
+        # list even if the file lingers on live.
+        - uses: copy
+          config:
+            inPath: ./src/cluster/kustomization.yaml
+            outPath: ./out/cluster/kustomization.yaml
         - uses: git-commit
           config:
             path: ./out
             message: |
-              kargo: mirror cluster.yaml to live
+              kargo: mirror cluster.yaml + kustomization.yaml to live
         - uses: git-push
           config:
             path: ./out
