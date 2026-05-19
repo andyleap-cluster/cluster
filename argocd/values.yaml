@@ -23,6 +23,11 @@ configs:
       issuer: https://id.andyleap.dev
       clientID: $argocd-oidc:clientID
       clientSecret: $argocd-oidc:clientSecret
+      # Pocket ID's client is created with pkce_enabled=true (enforces
+      # PKCE on every token exchange). ArgoCD's web login flow doesn't
+      # send a code_verifier by default; this flag turns on PKCE for
+      # the web flow too so the verifier matches.
+      enablePKCEAuthentication: true
       requestedScopes:
         - openid
         - profile
