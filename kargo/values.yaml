@@ -6,9 +6,12 @@ crds:
   keep: true
 
 api:
+  # Local admin disabled -- OIDC is the only auth path.
+  # The kargo-api Secret stays for ADMIN_ACCOUNT_TOKEN_SIGNING_KEY,
+  # which the API server uses to sign session JWTs even for OIDC
+  # users. Cleanup of the now-unused PASSWORD_HASH is a follow-up.
   adminAccount:
-    enabled: true
-  # passwordHash + tokenSigningKey come from the Terraform-managed Secret.
+    enabled: false
   secret:
     name: kargo-api
   host: kargo.andyleap.dev
@@ -20,6 +23,22 @@ api:
   # Kargo API serves plain HTTP on port 80 inside the cluster.
   tls:
     enabled: false
+
+  # OIDC against Pocket ID. PKCE-only (no client_secret), so the
+  # client_id is hardcoded here -- it's an identifier, not a secret.
+  # The matching pocketid_client + pocketid_group are in
+  # terraform/kargo-oidc.tf.
+  oidc:
+    enabled: true
+    issuerURL: https://id.andyleap.dev
+    clientID: kargo
+    usernameClaim: sub
+    additionalScopes:
+      - groups
+    admins:
+      claims:
+        groups:
+          - kargo-admins
 
 webhooksServer:
   tls:
