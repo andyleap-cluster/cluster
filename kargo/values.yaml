@@ -24,14 +24,19 @@ api:
   tls:
     enabled: false
 
-  # OIDC against Pocket ID. PKCE-only (no client_secret), so the
-  # client_id is hardcoded here -- it's an identifier, not a secret.
-  # The matching pocketid_client + pocketid_group are in
-  # terraform/kargo-oidc.tf.
+  # OIDC against Pocket ID. PKCE-only (no client_secret).
+  #
+  # clientID is a placeholder here: Pocket ID auto-generates a UUID
+  # for the OIDC client (the trozz/pocketid provider can't pin a
+  # custom id today), and the real value lives in the TF-managed
+  # kargo-oidc Secret which we mount via api.envFrom below.
+  # api.envFrom is concatenated AFTER the chart's built-in
+  # configmap/secret envFroms, so OIDC_CLIENT_ID from the Secret
+  # wins the pod env merge.
   oidc:
     enabled: true
     issuerURL: https://id.andyleap.dev
-    clientID: kargo
+    clientID: overridden-by-kargo-oidc-secret
     usernameClaim: sub
     additionalScopes:
       - groups
@@ -39,6 +44,10 @@ api:
       claims:
         groups:
           - kargo-admins
+
+  envFrom:
+    - secretRef:
+        name: kargo-oidc
 
 webhooksServer:
   tls:
