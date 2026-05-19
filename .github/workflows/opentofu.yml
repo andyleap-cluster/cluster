@@ -84,6 +84,13 @@ jobs:
         echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
         echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
 
+    - name: Configure Pocket ID provider env
+      env:
+        POCKETID_API_TOKEN: ${{ secrets.POCKETID_API_TOKEN }}
+      run: |
+        echo "POCKETID_BASE_URL=https://id.andyleap.dev" >> $GITHUB_ENV
+        echo "POCKETID_API_TOKEN=$POCKETID_API_TOKEN" >> $GITHUB_ENV
+
     - name: Install s3cmd
       run: uv tool install s3cmd
 
@@ -250,6 +257,13 @@ jobs:
       run: |
         echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
         echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
+
+    - name: Configure Pocket ID provider env
+      env:
+        POCKETID_API_TOKEN: ${{ secrets.POCKETID_API_TOKEN }}
+      run: |
+        echo "POCKETID_BASE_URL=https://id.andyleap.dev" >> $GITHUB_ENV
+        echo "POCKETID_API_TOKEN=$POCKETID_API_TOKEN" >> $GITHUB_ENV
 
     - name: Install s3cmd
       run: uv tool install s3cmd

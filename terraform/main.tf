@@ -37,6 +37,10 @@ terraform {
       source  = "loafoe/htpasswd"
       version = "~> 1.2"
     }
+    pocketid = {
+      source  = "trozz/pocketid"
+      version = "~> 0.1"
+    }
   }
 }
 
