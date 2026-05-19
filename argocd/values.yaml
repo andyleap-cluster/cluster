@@ -4,3 +4,36 @@
 configs:
   params:
     server.insecure: true
+
+  cm:
+    # Public URL of ArgoCD; required for OIDC redirect URLs.
+    url: https://argocd.andyleap.dev
+
+    # Disable local admin -- OIDC is the only auth path. Loss of OIDC
+    # is recoverable by reverting this flag via Kargo + ArgoCD config.
+    admin.enabled: "false"
+
+    # OIDC against Pocket ID. clientID + clientSecret are referenced
+    # from the kubernetes_secret managed by Terraform (argocd-oidc).
+    # Pocket ID emits the `groups` claim when the OIDC client requests
+    # the `groups` scope; argocd-admins membership flows through to
+    # the policy below.
+    oidc.config: |
+      name: Pocket ID
+      issuer: https://id.andyleap.dev
+      clientID: $argocd-oidc:clientID
+      clientSecret: $argocd-oidc:clientSecret
+      requestedScopes:
+        - openid
+        - profile
+        - email
+        - groups
+      requestedIDTokenClaims:
+        groups:
+          essential: true
+
+  rbac:
+    # Default deny -- only members of mapped groups have any access.
+    policy.default: ""
+    policy.csv: |
+      g, argocd-admins, role:admin
