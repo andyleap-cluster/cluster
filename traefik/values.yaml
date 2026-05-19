@@ -15,6 +15,18 @@ deployment:
 
 # Entry points configuration
 # Note: port is the container port (high port for non-root), exposedPort is the Service port
+#
+# proxyProtocol/forwardedHeaders trustedIPs:
+#   The Linode NodeBalancer is configured (via the service annotation
+#   below) to wrap every TCP connection with a PROXY-protocol v2 header
+#   carrying the real client IP. With externalTrafficPolicy: Cluster
+#   (the default), kube-proxy SNATs the connection to the receiving
+#   node's internal IP before forwarding to Traefik, so from Traefik's
+#   perspective the PROXY-wrapped connection arrives sourced from
+#   192.168.0.0/16 (LKE node CIDR). Trusting all RFC1918 ranges is the
+#   conservative version of "only internal cluster sources can supply
+#   PROXY headers" — the Service is exposed only via the NodeBalancer,
+#   so no other path can deliver spoofed PROXY data.
 ports:
   web:
     port: 8000
@@ -22,6 +34,16 @@ ports:
       default: true
     exposedPort: 80
     protocol: TCP
+    proxyProtocol:
+      trustedIPs:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+    forwardedHeaders:
+      trustedIPs:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
   websecure:
     port: 8443
     expose:
@@ -31,14 +53,33 @@ ports:
     http:
       tls:
         enabled: true
+    proxyProtocol:
+      trustedIPs:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+    forwardedHeaders:
+      trustedIPs:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
   traefik:
     port: 8080
     expose:
       default: false
 
 # Service configuration
+#
+# The Linode CCM annotation tells the NodeBalancer to wrap every TCP
+# connection with PROXY-protocol v2 carrying the real client IP. Both
+# the LB-side annotation and the Traefik-side entrypoint config must
+# match or every request fails to parse — they land together in the
+# same PR for that reason.
 service:
-  type: LoadBalancer
+  spec:
+    type: LoadBalancer
+  annotations:
+    service.beta.kubernetes.io/linode-loadbalancer-default-proxy-protocol: "v2"
 
 # Resource limits
 resources:
