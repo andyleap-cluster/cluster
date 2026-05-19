@@ -1,0 +1,21 @@
+# Explicit list of Application files rendered by the parent `cluster`
+# ArgoCD Application. Listing each Application here (instead of letting
+# ArgoCD enumerate the directory) means that retiring an app is a
+# matter of removing one line: ArgoCD prunes the Application even if
+# the deleted file lingers on the live branch (which can happen because
+# per-app Kargo Stages don't propagate deletions of their own
+# cluster/<app>.yaml file).
+#
+# When adding or removing an app, update this list AND the per-app
+# files in the same PR.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - argocd.yaml
+  - cert-manager-webhook-linode.yaml
+  - cert-manager.yaml
+  - cluster.yaml
+  - kargo-projects.yaml
+  - kargo.yaml
+  - traefik-crds.yaml
+  - traefik.yaml
