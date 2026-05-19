@@ -4,6 +4,7 @@ namespace: pocket-id
 
 resources:
   - configmap.yaml
+  - litestream-config.yaml
   - service.yaml
   - statefulset.yaml
   - httproute.yaml

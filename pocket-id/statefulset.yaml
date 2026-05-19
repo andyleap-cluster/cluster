@@ -8,6 +8,13 @@ spec:
   serviceName: pocket-id
   replicas: 1
   revisionHistoryLimit: 1
+  # Litestream requires a single writer at a time; maxUnavailable:100%
+  # ensures the old pod exits before the new one starts.
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 100%
+      partition: 0
   selector:
     matchLabels:
       app.kubernetes.io/name: pocket-id
@@ -18,7 +25,39 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
         fsGroup: 1000
+      volumes:
+        - name: data
+          emptyDir: {}
+        - name: litestream-config
+          configMap:
+            name: pocket-id-litestream
+      initContainers:
+        # Pull the latest snapshot from S3 into the emptyDir. -if-replica-exists=true
+        # makes this a no-op on first boot (before any backup exists).
+        - name: litestream-restore
+          image: docker.io/litestream/litestream:0.5.11
+          imagePullPolicy: IfNotPresent
+          args:
+            - restore
+            - -if-replica-exists=true
+            - -config=/etc/litestream/litestream.yaml
+            - /app/data/pocket-id.db
+          envFrom:
+            - secretRef:
+                name: pocket-id-bootstrap
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+            - name: litestream-config
+              mountPath: /etc/litestream
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
       containers:
         - name: pocket-id
           image: ghcr.io/pocket-id/pocket-id:v2.6.2
@@ -64,12 +103,31 @@ spec:
             capabilities:
               drop:
                 - ALL
-  volumeClaimTemplates:
-    - metadata:
-        name: data
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 1Gi
+        # Streams SQLite WAL changes to S3 continuously. Snapshot every minute by
+        # default; defaults are fine for a small DB.
+        - name: litestream
+          image: docker.io/litestream/litestream:0.5.11
+          imagePullPolicy: IfNotPresent
+          args:
+            - replicate
+            - -config=/etc/litestream/litestream.yaml
+          envFrom:
+            - secretRef:
+                name: pocket-id-bootstrap
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+            - name: litestream-config
+              mountPath: /etc/litestream
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
