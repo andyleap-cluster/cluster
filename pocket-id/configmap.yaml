@@ -14,8 +14,21 @@ data:
   LOG_JSON: "false"
   AUDIT_LOG_RETENTION_DAYS: "90"
   DISABLE_RATE_LIMITING: "false"
-  FILE_BACKEND: "filesystem"
-  UPLOAD_PATH: "data/uploads"
+  # Uploads (profile pictures, custom branding) go straight to the same
+  # Linode bucket Litestream uses, under a different path prefix.
+  # Litestream snapshots: bucket="andyleap-dev-pocket-id", path="litestream"
+  # Pocket ID uploads:    bucket="andyleap-dev-pocket-id", path="uploads"
+  # Credentials come from the bootstrap Secret via envFrom
+  # (S3_ACCESS_KEY_ID + S3_SECRET_ACCESS_KEY, same key as Litestream).
+  FILE_BACKEND: "s3"
+  UPLOAD_PATH: "uploads"
+  S3_BUCKET: "andyleap-dev-pocket-id"
+  S3_REGION: "us-sea-1"
+  S3_ENDPOINT: "https://us-sea-1.linodeobjects.com"
+  S3_FORCE_PATH_STYLE: "true"
+  # Linode Object Storage doesn't implement the AWS SDK v2 default
+  # content-md5 checksum verification; opt out so PUTs aren't rejected.
+  S3_DISABLE_DEFAULT_INTEGRITY_CHECKS: "true"
   DB_CONNECTION_STRING: "file:data/pocket-id.db"
   TRACING_ENABLED: "false"
   METRICS_ENABLED: "false"

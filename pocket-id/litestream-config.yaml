@@ -11,8 +11,8 @@ data:
       - path: /app/data/pocket-id.db
         replicas:
           - type: s3
-            bucket: andyleap-dev-pocket-id-backups
-            path: pocket-id
+            bucket: andyleap-dev-pocket-id
+            path: litestream
             region: us-sea-1
             endpoint: https://us-sea-1.linodeobjects.com
             force-path-style: true
