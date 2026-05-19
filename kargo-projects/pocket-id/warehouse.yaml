@@ -1,0 +1,17 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Warehouse
+metadata:
+  name: pocket-id
+  namespace: kargo-pocket-id
+spec:
+  subscriptions:
+    - image:
+        repoURL: ghcr.io/pocket-id/pocket-id
+        imageSelectionStrategy: SemVer
+        semverConstraint: ">=2.0.0 <3.0.0"
+        strictSemvers: true
+    - git:
+        repoURL: https://github.com/andyleap-cluster/cluster.git
+        branch: master
+        commitSelectionStrategy: NewestFromBranch
+        strictSemvers: false
