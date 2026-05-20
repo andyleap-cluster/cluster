@@ -26,8 +26,8 @@ configs:
     # OIDC against Pocket ID. clientID + clientSecret are referenced
     # from the kubernetes_secret managed by Terraform (argocd-oidc).
     # Pocket ID emits the `groups` claim when the OIDC client requests
-    # the `groups` scope; argocd-admins membership flows through to
-    # the policy below.
+    # the `groups` scope; argocd-admins / argocd-viewers membership
+    # flows through to the policy below.
     oidc.config: |
       name: Pocket ID
       issuer: https://id.andyleap.dev
@@ -52,3 +52,4 @@ configs:
     policy.default: ""
     policy.csv: |
       g, argocd-admins, role:admin
+      g, argocd-viewers, role:readonly
