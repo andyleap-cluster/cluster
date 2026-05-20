@@ -22,6 +22,10 @@ spec:
               - branch: live
                 create: true
                 path: ./out
+        # Sync this Stage's owned slice (cert-manager-webhook-linode/) from
+        # master to live. Clear first so files removed on master don't
+        # linger. cluster/cert-manager-webhook-linode.yaml is owned by the
+        # kargo-cluster Stage.
         - uses: git-clear
           # First promotion against a fresh live has no ./out/cert-manager-webhook-linode — that's
           # expected; ignore the resulting "no such file or directory" error.
@@ -30,18 +34,8 @@ spec:
             path: ./out/cert-manager-webhook-linode
         - uses: copy
           config:
-            inPath: ./src/cluster/cert-manager-webhook-linode.yaml
-            outPath: ./out/cluster/cert-manager-webhook-linode.yaml
-        - uses: copy
-          config:
             inPath: ./src/cert-manager-webhook-linode
             outPath: ./out/cert-manager-webhook-linode
-        - uses: yaml-update
-          config:
-            path: ./out/cluster/cert-manager-webhook-linode.yaml
-            updates:
-              - key: spec.sources.0.targetRevision
-                value: ${{ commitFrom("https://github.com/linode/cert-manager-webhook-linode.git").Tag }}
         - uses: yaml-update
           config:
             path: ./out/cert-manager-webhook-linode/values.yaml
@@ -52,7 +46,7 @@ spec:
           config:
             path: ./out
             message: |
-              kargo: bump cert-manager-webhook-linode to ${{ commitFrom("https://github.com/linode/cert-manager-webhook-linode.git").Tag }} / image ${{ imageFrom("docker.io/linode/cert-manager-webhook-linode").Tag }}
+              kargo: bump cert-manager-webhook-linode image to ${{ imageFrom("docker.io/linode/cert-manager-webhook-linode").Tag }}
         - uses: git-push
           config:
             path: ./out

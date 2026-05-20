@@ -5,13 +5,10 @@ metadata:
   namespace: kargo-cert-manager-webhook-linode
 spec:
   subscriptions:
-    # The chart for this webhook is hosted in a git repo, not a chart registry,
-    # so we track the repo's git tags as the "chart version".
-    - git:
-        repoURL: https://github.com/linode/cert-manager-webhook-linode.git
-        commitSelectionStrategy: SemVer
-        semverConstraint: ">=0.3.0 <1.0.0"
-        strictSemvers: true
+    # Chart-version (git-tag) auto-bumps were dropped (see #71). Chart
+    # upgrades are landed as manual PRs that edit
+    # cluster/cert-manager-webhook-linode.yaml directly. Image bumps
+    # still drive automated promotions.
     - image:
         repoURL: docker.io/linode/cert-manager-webhook-linode
         imageSelectionStrategy: SemVer

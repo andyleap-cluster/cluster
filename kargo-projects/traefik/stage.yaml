@@ -22,6 +22,9 @@ spec:
               - branch: live
                 create: true
                 path: ./out
+        # Sync this Stage's owned slice (traefik/) from master to live.
+        # Clear first so files removed on master don't linger.
+        # cluster/traefik.yaml is owned by the kargo-cluster Stage.
         - uses: git-clear
           # First promotion against a fresh live has no ./out/traefik — that's
           # expected; ignore the resulting "no such file or directory" error.
@@ -30,18 +33,8 @@ spec:
             path: ./out/traefik
         - uses: copy
           config:
-            inPath: ./src/cluster/traefik.yaml
-            outPath: ./out/cluster/traefik.yaml
-        - uses: copy
-          config:
             inPath: ./src/traefik
             outPath: ./out/traefik
-        - uses: yaml-update
-          config:
-            path: ./out/cluster/traefik.yaml
-            updates:
-              - key: spec.sources.0.targetRevision
-                value: ${{ chartFrom("https://traefik.github.io/charts", "traefik").Version }}
         - uses: yaml-update
           config:
             path: ./out/traefik/values.yaml
@@ -52,7 +45,7 @@ spec:
           config:
             path: ./out
             message: |
-              kargo: bump traefik to chart ${{ chartFrom("https://traefik.github.io/charts", "traefik").Version }} / image ${{ imageFrom("docker.io/traefik").Tag }}
+              kargo: bump traefik image to ${{ imageFrom("docker.io/traefik").Tag }}
         - uses: git-push
           config:
             path: ./out
