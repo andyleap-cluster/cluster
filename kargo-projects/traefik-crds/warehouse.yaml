@@ -5,8 +5,10 @@ metadata:
   namespace: kargo-traefik-crds
 spec:
   subscriptions:
-    # Chart-version auto-bumps were dropped (see #71). Chart upgrades
-    # are landed as manual PRs that edit cluster/traefik-crds.yaml directly.
+    - chart:
+        repoURL: https://traefik.github.io/charts
+        name: traefik-crds
+        semverConstraint: ">=1.18.0 <2.0.0"
     - git:
         repoURL: https://github.com/andyleap-cluster/cluster.git
         branch: master
