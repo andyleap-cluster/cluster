@@ -1,10 +1,8 @@
 # Explicit list of Application files rendered by the parent `cluster`
 # ArgoCD Application. Listing each Application here (instead of letting
-# ArgoCD enumerate the directory) means that retiring an app is a
-# matter of removing one line: ArgoCD prunes the Application even if
-# the deleted file lingers on the live branch (which can happen because
-# per-app Kargo Stages don't propagate deletions of their own
-# cluster/<app>.yaml file).
+# ArgoCD enumerate the directory) acts as an explicit Application
+# registry: retiring an app means removing one line here AND deleting
+# the corresponding file in the same PR.
 #
 # When adding or removing an app, update this list AND the per-app
 # files in the same PR.

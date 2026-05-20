@@ -22,8 +22,9 @@ spec:
               - branch: live
                 create: true
                 path: ./out
-        # Clear the kargo helm values directory so removed files on master
-        # don't linger on live.
+        # Sync this Stage's owned slice (kargo/) from master to live.
+        # Clear first so files removed on master don't linger.
+        # cluster/kargo.yaml is owned by the kargo-cluster Stage.
         - uses: git-clear
           # First promotion against a fresh live has no ./out/kargo — that's
           # expected; ignore the resulting "no such file or directory" error.
@@ -34,26 +35,11 @@ spec:
           config:
             inPath: ./src/kargo
             outPath: ./out/kargo
-        # Copy this Stage's own ArgoCD App manifest. cluster/cluster.yaml
-        # is owned by the kargo-cluster pipeline; cluster/kargo-projects.yaml
-        # by kargo-kargo-projects.
-        - uses: copy
-          config:
-            inPath: ./src/cluster/kargo.yaml
-            outPath: ./out/cluster/kargo.yaml
-        # Bump the kargo chart targetRevision to whatever the warehouse
-        # discovered.
-        - uses: yaml-update
-          config:
-            path: ./out/cluster/kargo.yaml
-            updates:
-              - key: spec.sources.0.targetRevision
-                value: ${{ chartFrom("oci://ghcr.io/akuity/kargo-charts/kargo").Version }}
         - uses: git-commit
           config:
             path: ./out
             message: |
-              kargo: bump kargo to chart ${{ chartFrom("oci://ghcr.io/akuity/kargo-charts/kargo").Version }}
+              kargo: sync kargo/ to live
         - uses: git-push
           config:
             path: ./out
