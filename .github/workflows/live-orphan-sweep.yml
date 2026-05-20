@@ -1,0 +1,80 @@
+name: 'Live Orphan Sweep'
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: live-orphan-sweep
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    name: 'Sweep orphan paths on live'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout default branch (for the script)
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Materialize live in a worktree
+        run: |
+          git fetch origin live
+          git worktree add ../live origin/live
+
+      - name: Skip if a sweep PR is already open
+        id: skip
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          n=$(gh pr list --label live-orphan-sweep --state open --base live --json number --jq 'length')
+          echo "open=$n" >> "$GITHUB_OUTPUT"
+          if [ "$n" != "0" ]; then
+            echo "::notice::An open live-orphan-sweep PR already exists; skipping run."
+          fi
+
+      - name: Compute orphan paths
+        if: steps.skip.outputs.open == '0'
+        id: compute
+        run: |
+          python3 scripts/find-live-orphans.py ../live > orphans.txt
+          if [ -s orphans.txt ]; then
+            echo "has_orphans=1" >> "$GITHUB_OUTPUT"
+            echo "Orphans found:"
+            cat orphans.txt
+          else
+            echo "has_orphans=0" >> "$GITHUB_OUTPUT"
+            echo "No orphans."
+          fi
+
+      - name: Open sweep PR
+        if: steps.skip.outputs.open == '0' && steps.compute.outputs.has_orphans == '1'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: ../live
+        run: |
+          branch="automation/live-orphan-sweep-$(date -u +%Y-%m-%d)"
+          git config user.name 'kargo-sweep'
+          git config user.email 'sweep@andyleap.dev'
+          git switch -c "$branch"
+          xargs -d '\n' -a "$GITHUB_WORKSPACE/orphans.txt" git rm -r --
+          git commit -m 'Sweep orphan paths from live branch'
+          git push -u origin "$branch"
+          gh pr create \
+            --base live \
+            --head "$branch" \
+            --title 'Sweep orphan paths from live' \
+            --label live-orphan-sweep \
+            --body 'Automated daily sweep of paths on `live` not owned by any Kargo Stage. Inspect the diff.'
