@@ -1,0 +1,21 @@
+# Single cluster-scoped GitHub webhook receiver. Every Warehouse in
+# every project subscribes to the same cluster repo, so one receiver
+# fans out to all of them; a per-ProjectConfig receiver would mean N
+# separate webhook registrations in GitHub.
+#
+# Kargo looks up the referenced Secret in the namespace named by
+# global.systemResources.namespace (default "kargo-system-resources",
+# auto-created by the chart). The Secret itself is provisioned by
+# Terraform (terraform/kargo-webhook.tf), which also computes the
+# matching path -- sha256("" + receiverName + secret) -- and registers
+# the GitHub webhook against it.
+apiVersion: kargo.akuity.io/v1alpha1
+kind: ClusterConfig
+metadata:
+  name: cluster
+spec:
+  webhookReceivers:
+    - name: github-cluster-repo
+      github:
+        secretRef:
+          name: kargo-github-webhook
