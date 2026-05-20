@@ -44,6 +44,15 @@ api:
       claims:
         groups:
           - kargo-admins
+    # Read-only access to all Kargo resources (Stages, Promotions,
+    # Warehouses, Freight, Projects). The chart renders a `kargo-viewer`
+    # ServiceAccount + ClusterRole/ClusterRoleBinding and stamps these
+    # claims onto the SA; Kargo's API server impersonates that SA for
+    # any user whose token matches a claim here.
+    viewers:
+      claims:
+        groups:
+          - kargo-viewers
 
   envFrom:
     - secretRef:
@@ -52,6 +61,17 @@ api:
 webhooksServer:
   tls:
     selfSignedCert: true
+
+# Public webhook-receiver endpoint (separate hostname from the API).
+# Traefik terminates TLS at the edge via the kargo-webhooks HTTPRoute;
+# the pod serves plain HTTP and `terminatedUpstream: true` tells Kargo
+# to still publish https:// URLs in ClusterConfig/ProjectConfig status
+# so GitHub gets a real TLS URL to POST to.
+externalWebhooksServer:
+  host: kargo-webhooks.andyleap.dev
+  tls:
+    enabled: false
+    terminatedUpstream: true
 
 controller:
   argocd:
