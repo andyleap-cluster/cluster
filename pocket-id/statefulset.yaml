@@ -8,13 +8,11 @@ spec:
   serviceName: pocket-id
   replicas: 1
   revisionHistoryLimit: 1
-  # Litestream requires a single writer at a time; maxUnavailable:100%
-  # ensures the old pod exits before the new one starts.
-  updateStrategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 100%
-      partition: 0
+  # Default RollingUpdate strategy is fine: with replicas: 1 the
+  # rolling update takes the single pod down before creating the new
+  # one (sequential by ordinal), which preserves Litestream's
+  # single-writer guarantee. The maxUnavailable knob was gated behind
+  # a feature flag LKE doesn't expose and was redundant anyway.
   selector:
     matchLabels:
       app.kubernetes.io/name: pocket-id

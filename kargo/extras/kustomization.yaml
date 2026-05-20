@@ -1,8 +1,13 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: kargo
+# No top-level `namespace:` -- ClusterConfig is cluster-scoped and
+# kustomize cannot infer scope for CRDs, so it would otherwise inject
+# `metadata.namespace: kargo` and the API server would reject it.
+# All namespaced resources here declare their namespace explicitly.
 
 resources:
   - global-credentials-rbac.yaml
   - httproute.yaml
+  - httproute-webhooks.yaml
+  - clusterconfig.yaml
