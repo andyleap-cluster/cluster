@@ -22,6 +22,9 @@ spec:
               - branch: live
                 create: true
                 path: ./out
+        # Sync this Stage's owned slice (cert-manager/) from master to live.
+        # Clear first so files removed on master don't linger.
+        # cluster/cert-manager.yaml is owned by the kargo-cluster Stage.
         - uses: git-clear
           # First promotion against a fresh live has no ./out/cert-manager — that's
           # expected; ignore the resulting "no such file or directory" error.
@@ -30,23 +33,13 @@ spec:
             path: ./out/cert-manager
         - uses: copy
           config:
-            inPath: ./src/cluster/cert-manager.yaml
-            outPath: ./out/cluster/cert-manager.yaml
-        - uses: copy
-          config:
             inPath: ./src/cert-manager
             outPath: ./out/cert-manager
-        - uses: yaml-update
-          config:
-            path: ./out/cluster/cert-manager.yaml
-            updates:
-              - key: spec.sources.0.targetRevision
-                value: ${{ chartFrom("https://charts.jetstack.io", "cert-manager").Version }}
         - uses: git-commit
           config:
             path: ./out
             message: |
-              kargo: bump cert-manager to chart ${{ chartFrom("https://charts.jetstack.io", "cert-manager").Version }}
+              kargo: sync cert-manager/ to live
         - uses: git-push
           config:
             path: ./out

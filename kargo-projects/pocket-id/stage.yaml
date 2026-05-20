@@ -22,16 +22,15 @@ spec:
               - branch: live
                 create: true
                 path: ./out
+        # Sync this Stage's owned slice (pocket-id/) from master to live.
+        # Clear first so files removed on master don't linger.
+        # cluster/pocket-id.yaml is owned by the kargo-cluster Stage.
         - uses: git-clear
           # First promotion against a fresh live has no ./out/pocket-id — that's
           # expected; ignore the resulting "no such file or directory" error.
           continueOnError: true
           config:
             path: ./out/pocket-id
-        - uses: copy
-          config:
-            inPath: ./src/cluster/pocket-id.yaml
-            outPath: ./out/cluster/pocket-id.yaml
         - uses: copy
           config:
             inPath: ./src/pocket-id
