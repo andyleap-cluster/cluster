@@ -68,6 +68,10 @@ jobs:
           branch="automation/live-orphan-sweep-$(date -u +%Y-%m-%d)"
           git config user.name 'kargo-sweep'
           git config user.email 'sweep@andyleap.dev'
+          # Wipe any stale branch left by a same-day retry whose PR has
+          # since been closed — the open-PR skip check above already
+          # protects the in-flight case.
+          git push origin --delete "$branch" 2>/dev/null || true
           git switch -c "$branch"
           xargs -d '\n' -a "$GITHUB_WORKSPACE/orphans.txt" git rm -r --
           git commit -m 'Sweep orphan paths from live branch'
