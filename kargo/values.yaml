@@ -44,6 +44,15 @@ api:
       claims:
         groups:
           - kargo-admins
+    # Read-only access to all Kargo resources (Stages, Promotions,
+    # Warehouses, Freight, Projects). The chart renders a `kargo-viewer`
+    # ServiceAccount + ClusterRole/ClusterRoleBinding and stamps these
+    # claims onto the SA; Kargo's API server impersonates that SA for
+    # any user whose token matches a claim here.
+    viewers:
+      claims:
+        groups:
+          - kargo-viewers
 
   envFrom:
     - secretRef:
