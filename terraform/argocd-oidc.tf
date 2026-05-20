@@ -2,14 +2,20 @@
 # kubernetes_secret that argocd-server reads via $<secret>:<key>
 # references in argocd-cm.
 #
-# Group-based RBAC: argocd-admins members get role:admin in ArgoCD.
-# Add yourself to the group manually via Pocket ID's UI -- the
-# provider has no data source for existing users and we don't want
-# to import the bootstrap-created passkey user into TF state.
+# Group-based RBAC: argocd-admins members get role:admin in ArgoCD,
+# argocd-viewers members get role:readonly. Add users to the groups
+# manually via Pocket ID's UI -- the provider has no data source for
+# existing users and we don't want to import the bootstrap-created
+# passkey user into TF state.
 
 resource "pocketid_group" "argocd_admins" {
   name          = "argocd-admins"
   friendly_name = "ArgoCD Admins"
+}
+
+resource "pocketid_group" "argocd_viewers" {
+  name          = "argocd-viewers"
+  friendly_name = "ArgoCD Viewers"
 }
 
 resource "pocketid_client" "argocd" {
