@@ -22,23 +22,22 @@ spec:
               - branch: live
                 create: true
                 path: ./out
-        # This Stage owns the entire cluster/ dir on live. Clearing
-        # first and then copying the whole directory means file
-        # additions and removals on master both propagate cleanly —
-        # per-app Stages no longer write into cluster/.
-        - uses: git-clear
-          continueOnError: true
-          config:
-            path: ./out/cluster
         - uses: copy
           config:
-            inPath: ./src/cluster
-            outPath: ./out/cluster
+            inPath: ./src/cluster/cluster.yaml
+            outPath: ./out/cluster/cluster.yaml
+        # kustomization.yaml is what makes per-app retirements propagate
+        # to live: ArgoCD prunes Applications removed from the resources
+        # list even if the file lingers on live.
+        - uses: copy
+          config:
+            inPath: ./src/cluster/kustomization.yaml
+            outPath: ./out/cluster/kustomization.yaml
         - uses: git-commit
           config:
             path: ./out
             message: |
-              kargo: mirror cluster/ to live
+              kargo: mirror cluster.yaml + kustomization.yaml to live
         - uses: git-push
           config:
             path: ./out

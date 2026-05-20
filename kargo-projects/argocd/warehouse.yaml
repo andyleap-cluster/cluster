@@ -5,8 +5,10 @@ metadata:
   namespace: kargo-argocd
 spec:
   subscriptions:
-    # Chart-version auto-bumps were dropped (see #71). Chart upgrades
-    # are landed as manual PRs that edit cluster/argocd.yaml directly.
+    - chart:
+        repoURL: https://argoproj.github.io/argo-helm
+        name: argo-cd
+        semverConstraint: ">=8.0.0 <10.0.0"
     - git:
         repoURL: https://github.com/andyleap-cluster/cluster.git
         branch: master
