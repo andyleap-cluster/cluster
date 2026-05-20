@@ -5,8 +5,10 @@ metadata:
   namespace: kargo-cert-manager
 spec:
   subscriptions:
-    # Chart-version auto-bumps were dropped (see #71). Chart upgrades
-    # are landed as manual PRs that edit cluster/cert-manager.yaml directly.
+    - chart:
+        repoURL: https://charts.jetstack.io
+        name: cert-manager
+        semverConstraint: ">=1.16.0 <2.0.0"
     - git:
         repoURL: https://github.com/andyleap-cluster/cluster.git
         branch: master

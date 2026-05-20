@@ -22,9 +22,6 @@ spec:
               - branch: live
                 create: true
                 path: ./out
-        # Sync this Stage's owned slice (traefik-crds/) from master to live.
-        # Clear first so files removed on master don't linger.
-        # cluster/traefik-crds.yaml is owned by the kargo-cluster Stage.
         - uses: git-clear
           # First promotion against a fresh live has no ./out/traefik-crds — that's
           # expected; ignore the resulting "no such file or directory" error.
@@ -33,13 +30,23 @@ spec:
             path: ./out/traefik-crds
         - uses: copy
           config:
+            inPath: ./src/cluster/traefik-crds.yaml
+            outPath: ./out/cluster/traefik-crds.yaml
+        - uses: copy
+          config:
             inPath: ./src/traefik-crds
             outPath: ./out/traefik-crds
+        - uses: yaml-update
+          config:
+            path: ./out/cluster/traefik-crds.yaml
+            updates:
+              - key: spec.sources.0.targetRevision
+                value: ${{ chartFrom("https://traefik.github.io/charts", "traefik-crds").Version }}
         - uses: git-commit
           config:
             path: ./out
             message: |
-              kargo: sync traefik-crds/ to live
+              kargo: bump traefik-crds to chart ${{ chartFrom("https://traefik.github.io/charts", "traefik-crds").Version }}
         - uses: git-push
           config:
             path: ./out

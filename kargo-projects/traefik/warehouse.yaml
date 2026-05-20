@@ -5,9 +5,10 @@ metadata:
   namespace: kargo-traefik
 spec:
   subscriptions:
-    # Chart-version auto-bumps were dropped (see #71). Chart upgrades
-    # are landed as manual PRs that edit cluster/traefik.yaml directly.
-    # Image bumps still drive automated promotions.
+    - chart:
+        repoURL: https://traefik.github.io/charts
+        name: traefik
+        semverConstraint: ">=34.0.0 <41.0.0"
     - image:
         repoURL: docker.io/traefik
         imageSelectionStrategy: SemVer
