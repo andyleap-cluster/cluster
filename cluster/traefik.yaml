@@ -12,7 +12,7 @@ spec:
   sources:
     - repoURL: 'https://traefik.github.io/charts'
       chart: traefik
-      targetRevision: 40.2.0
+      targetRevision: 34.4.1
       helm:
         # CRDs are owned by the traefik-crds App; don't double-install.
         skipCrds: true
