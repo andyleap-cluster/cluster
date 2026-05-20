@@ -14,13 +14,21 @@
 # ConfigMap.
 #
 # Group-based RBAC: members of `kargo-admins` get Kargo admin
-# privileges via the chart's api.oidc.admins.claims.groups mapping
-# (no K8s ClusterRoleBinding plumbing required -- Kargo does its
-# own RBAC internally from the OIDC claims).
+# privileges, members of `kargo-viewers` get read-only access to all
+# Kargo resources. Both flow through the chart's api.oidc.admins /
+# api.oidc.viewers `claims.groups` mappings -- no K8s
+# ClusterRoleBinding plumbing required, Kargo does its own RBAC
+# internally from the OIDC claims and impersonates the matching
+# system-role ServiceAccount the chart renders for each tier.
 
 resource "pocketid_group" "kargo_admins" {
   name          = "kargo-admins"
   friendly_name = "Kargo Admins"
+}
+
+resource "pocketid_group" "kargo_viewers" {
+  name          = "kargo-viewers"
+  friendly_name = "Kargo Viewers"
 }
 
 resource "pocketid_client" "kargo" {
