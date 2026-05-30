@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tinyoauth-config
+  namespace: tinyoauth
+data:
+  config.yaml: |
+    listen: ":4180"
+    auth_host: "auth.andyleap.dev"
+    issuer: "https://id.andyleap.dev"
+    cookie_name: "_tinyoauth"
+    cookie_domain: ".andyleap.dev"
+    session_ttl: "12h"
+    annotation_prefix: "tinyoauth.andyleap.dev"
+    namespace: "tinyoauth"
+    service_account: "tinyoauth"
+    # cookie_secret is intentionally absent — injected at runtime via
+    # TINYOAUTH_COOKIE_SECRET from the tinyoauth-secret K8s Secret (Terraform-managed).
