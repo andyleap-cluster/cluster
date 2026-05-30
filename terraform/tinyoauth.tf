@@ -1,3 +1,12 @@
+# Namespace must exist before the Secret can be created. ArgoCD would create it
+# via CreateNamespace=true, but Terraform runs before ArgoCD on a fresh cluster,
+# so we own the namespace here.
+resource "kubernetes_namespace" "tinyoauth" {
+  metadata {
+    name = "tinyoauth"
+  }
+}
+
 # TinyOAuth session encryption key. 32 random bytes encoded as 64 hex chars,
 # which is what TinyOAuth's AES-256-GCM session codec expects.
 resource "random_bytes" "tinyoauth_cookie_secret" {
@@ -10,7 +19,7 @@ resource "random_bytes" "tinyoauth_cookie_secret" {
 resource "kubernetes_secret" "tinyoauth_secret" {
   metadata {
     name      = "tinyoauth-secret"
-    namespace = "tinyoauth"
+    namespace = kubernetes_namespace.tinyoauth.metadata[0].name
   }
 
   data = {
