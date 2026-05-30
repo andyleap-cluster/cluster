@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tinyoauth
+  namespace: argocd
+  annotations:
+    kargo.akuity.io/authorized-stage: "kargo-tinyoauth:main"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/andyleap-cluster/cluster.git'
+    targetRevision: live
+    path: tinyoauth
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: tinyoauth
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+    - ServerSideApply=true

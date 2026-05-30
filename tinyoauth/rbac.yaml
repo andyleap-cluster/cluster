@@ -1,0 +1,52 @@
+# Cluster-wide read access to Traefik Middlewares and ConfigMaps.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: tinyoauth-reader
+rules:
+- apiGroups: ["traefik.io"]
+  resources: ["middlewares"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tinyoauth-reader
+subjects:
+- kind: ServiceAccount
+  name: tinyoauth
+  namespace: tinyoauth
+roleRef:
+  kind: ClusterRole
+  name: tinyoauth-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+# Permission to mint SA tokens for the bouncer's own SA only.
+# resourceNames pins this to self so it cannot mint tokens for any other identity.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tinyoauth-self-token
+  namespace: tinyoauth
+rules:
+- apiGroups: [""]
+  resources: ["serviceaccounts/token"]
+  resourceNames: ["tinyoauth"]
+  verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tinyoauth-self-token
+  namespace: tinyoauth
+subjects:
+- kind: ServiceAccount
+  name: tinyoauth
+  namespace: tinyoauth
+roleRef:
+  kind: Role
+  name: tinyoauth-self-token
+  apiGroup: rbac.authorization.k8s.io

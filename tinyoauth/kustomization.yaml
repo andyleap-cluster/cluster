@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: tinyoauth
+
+resources:
+  - configmap.yaml
+  - serviceaccount.yaml
+  - rbac.yaml
+  - deployment.yaml
+  - service.yaml
+  - httproute.yaml
+
+# Kargo's kargo-tinyoauth:main Stage rewrites images.0.newTag on each
+# promotion. The tinyoauth-secret (TINYOAUTH_COOKIE_SECRET) lives in
+# Terraform, not here, so this kustomization intentionally does not include it.
+images:
+  - name: ghcr.io/andyleap/tinyoauth
+    newTag: v0.1.0

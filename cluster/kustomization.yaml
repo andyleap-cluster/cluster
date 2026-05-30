@@ -18,5 +18,6 @@ resources:
   - kargo-projects.yaml
   - kargo.yaml
   - pocket-id.yaml
+  - tinyoauth.yaml
   - traefik-crds.yaml
   - traefik.yaml

@@ -1,0 +1,17 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Warehouse
+metadata:
+  name: tinyoauth
+  namespace: kargo-tinyoauth
+spec:
+  subscriptions:
+    - image:
+        repoURL: ghcr.io/andyleap/tinyoauth
+        imageSelectionStrategy: SemVer
+        semverConstraint: ">=0.1.0 <1.0.0"
+        strictSemvers: true
+    - git:
+        repoURL: https://github.com/andyleap-cluster/cluster.git
+        branch: master
+        commitSelectionStrategy: NewestFromBranch
+        strictSemvers: false

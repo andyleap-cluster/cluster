@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tinyoauth
+  namespace: tinyoauth
+  labels:
+    app.kubernetes.io/name: tinyoauth
+spec:
+  replicas: 2
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tinyoauth
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tinyoauth
+    spec:
+      serviceAccountName: tinyoauth
+      securityContext:
+        runAsNonRoot: true
+      volumes:
+        - name: config
+          configMap:
+            name: tinyoauth-config
+      containers:
+        - name: tinyoauth
+          image: ghcr.io/andyleap/tinyoauth:v0.1.0
+          args: ["--config=/etc/tinyoauth/config.yaml"]
+          envFrom:
+            - secretRef:
+                name: tinyoauth-secret
+          ports:
+            - name: http
+              containerPort: 4180
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /etc/tinyoauth
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
