@@ -19,3 +19,7 @@ spec:
         branch: master
         commitSelectionStrategy: NewestFromBranch
         strictSemvers: false
+        # Only build new Freight when this app's manifests change.
+        includePaths:
+          - cluster/traefik.yaml
+          - traefik
