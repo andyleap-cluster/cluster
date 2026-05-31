@@ -1,4 +1,6 @@
-# Node-scoped Pod watch for the agent's log metadata enrichment.
+# Cluster-wide read of Pods for the agent's log metadata enrichment. The agent
+# filters to its own node at runtime, but the permission itself is cluster-scoped
+# (a ClusterRole/ClusterRoleBinding — Pod watches can't be restricted by node).
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:

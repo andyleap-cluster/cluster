@@ -1,11 +1,17 @@
 # simplelog agent: DaemonSet on every node. Read-only access to pod logs plus a
-# node-scoped Pod watch for metadata enrichment. The checkpoint lives on a
-# hostPath so a restarted agent resumes from the last acked offset.
+# cluster-wide Pod read for metadata enrichment (the agent filters to its own
+# node at runtime; the RBAC itself is cluster-scoped — see rbac.yaml). The
+# checkpoint lives on a hostPath so a restarted agent resumes from the last
+# acked offset.
 #
 # NB: unlike the rest of the cluster, this pod intentionally runs as root with
 # NO restrictive securityContext. The agent must read root-owned host log files
-# under /var/log/pods and /var/lib/docker/containers; forcing runAsNonRoot would
-# break log collection. Access is constrained to read-only host mounts.
+# under /var/log/pods; forcing runAsNonRoot would break log collection. The log
+# mount is read-only; only the checkpoint mount (/var/lib/simplelog) is writable.
+#
+# LKE nodes run containerd, so the CRI writes the real log files directly under
+# /var/log/pods (the upstream's extra /var/lib/docker/containers mount is for
+# Docker-runtime nodes and is omitted here — that path does not exist on LKE).
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -61,19 +67,12 @@ spec:
             - name: pod-logs
               mountPath: /var/log/pods
               readOnly: true
-            # /var/log/pods symlinks into the container runtime dir; mount it too.
-            - name: container-logs
-              mountPath: /var/lib/docker/containers
-              readOnly: true
             - name: checkpoint
               mountPath: /var/lib/simplelog
       volumes:
         - name: pod-logs
           hostPath:
             path: /var/log/pods
-        - name: container-logs
-          hostPath:
-            path: /var/lib/docker/containers
         - name: checkpoint
           hostPath:
             path: /var/lib/simplelog
