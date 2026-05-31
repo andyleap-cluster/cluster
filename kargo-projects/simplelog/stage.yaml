@@ -1,0 +1,60 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Stage
+metadata:
+  name: main
+  namespace: kargo-simplelog
+spec:
+  requestedFreight:
+    - origin:
+        kind: Warehouse
+        name: simplelog
+      sources:
+        direct: true
+  promotionTemplate:
+    spec:
+      steps:
+        - uses: git-clone
+          config:
+            repoURL: git@github.com:andyleap-cluster/cluster.git
+            checkout:
+              - branch: master
+                path: ./src
+              - branch: live
+                create: true
+                path: ./out
+        - uses: git-clear
+          # First promotion against a fresh live has no ./out/simplelog — that's
+          # expected; ignore the resulting "no such file or directory" error.
+          continueOnError: true
+          config:
+            path: ./out/simplelog
+        - uses: copy
+          config:
+            inPath: ./src/cluster/simplelog.yaml
+            outPath: ./out/cluster/simplelog.yaml
+        - uses: copy
+          config:
+            inPath: ./src/simplelog
+            outPath: ./out/simplelog
+        - uses: yaml-update
+          config:
+            path: ./out/simplelog/kustomization.yaml
+            updates:
+              - key: images.0.newTag
+                value: ${{ imageFrom("ghcr.io/andyleap/simplelog-manager").Tag }}
+              - key: images.1.newTag
+                value: ${{ imageFrom("ghcr.io/andyleap/simplelog-agent").Tag }}
+        - uses: git-commit
+          config:
+            path: ./out
+            message: |
+              kargo: bump simplelog images to ${{ imageFrom("ghcr.io/andyleap/simplelog-manager").Tag }}
+        - uses: git-push
+          config:
+            path: ./out
+            targetBranch: live
+        - uses: argocd-update
+          config:
+            apps:
+              - name: simplelog
+                namespace: argocd

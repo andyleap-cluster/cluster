@@ -1,0 +1,79 @@
+# simplelog agent: DaemonSet on every node. Read-only access to pod logs plus a
+# cluster-wide Pod read for metadata enrichment (the agent filters to its own
+# node at runtime; the RBAC itself is cluster-scoped — see rbac.yaml). The
+# checkpoint lives on a hostPath so a restarted agent resumes from the last
+# acked offset.
+#
+# NB: unlike the rest of the cluster, this pod intentionally runs as root with
+# NO restrictive securityContext. The agent must read root-owned host log files
+# under /var/log/pods; forcing runAsNonRoot would break log collection. The log
+# mount is read-only; only the checkpoint mount (/var/lib/simplelog) is writable.
+#
+# LKE nodes run containerd, so the CRI writes the real log files directly under
+# /var/log/pods (the upstream's extra /var/lib/docker/containers mount is for
+# Docker-runtime nodes and is omitted here — that path does not exist on LKE).
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: simplelog-agent
+  namespace: simplelog
+  labels:
+    app.kubernetes.io/name: simplelog-agent
+spec:
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: simplelog-agent
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: simplelog-agent
+      # Opt this pod out of ingestion so simplelog's own logs are never tailed.
+      annotations:
+        simplelog.io/ingest: "false"
+    spec:
+      serviceAccountName: simplelog-agent
+      tolerations:
+        - operator: Exists # run on every node, including control-plane/tainted
+      containers:
+        - name: agent
+          image: ghcr.io/andyleap/simplelog-agent:v0.1.0
+          env:
+            - name: SL_MANAGER_ADDR
+              value: "simplelog-manager.simplelog.svc:9000"
+            - name: SL_LOG_ROOT
+              value: "/var/log/pods"
+            - name: SL_CHECKPOINT
+              value: "/var/lib/simplelog/checkpoint.db"
+            - name: SL_MAX_HELD_BYTES
+              value: "67108864" # 64 MiB soft cap
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            # Own namespace is always self-excluded (race-free guard against
+            # log loops, independent of the annotation/informer).
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+          volumeMounts:
+            - name: pod-logs
+              mountPath: /var/log/pods
+              readOnly: true
+            - name: checkpoint
+              mountPath: /var/lib/simplelog
+      volumes:
+        - name: pod-logs
+          hostPath:
+            path: /var/log/pods
+        - name: checkpoint
+          hostPath:
+            path: /var/lib/simplelog
+            type: DirectoryOrCreate

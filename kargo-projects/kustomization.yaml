@@ -9,6 +9,7 @@ resources:
   - kargo
   - kargo-projects
   - pocket-id
+  - simplelog
   - tinyoauth
   - traefik
   - traefik-crds

@@ -1,0 +1,15 @@
+# Non-secret S3 settings for the manager, pointed at the Linode Object Storage
+# bucket created in terraform/simplelog.tf. The credentials (SL_S3_ACCESS_KEY /
+# SL_S3_SECRET_KEY) are kept out of git and injected from the Terraform-managed
+# simplelog-s3 Secret via envFrom in the StatefulSet.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: simplelog-s3-config
+  namespace: simplelog
+data:
+  SL_S3_BUCKET: "andyleap-dev-simplelog"
+  SL_S3_DOMAIN: "us-sea-1.linodeobjects.com"
+  SL_S3_REGION: "us-sea-1"
+  SL_S3_PROTOCOL: "https"
+  SL_S3_PATH_STYLE: "true"

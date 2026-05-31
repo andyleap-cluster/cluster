@@ -1,0 +1,14 @@
+# Access policy for the simplelog UI (referenced by the Middleware's
+# policy-ref annotation). Only members of the simplelog-users Pocket ID group
+# (created in terraform/simplelog.tf) may reach the logs.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tinyoauth-policy-simplelog
+  namespace: simplelog
+data:
+  rules.yaml: |
+    default_allowed_groups: ["simplelog-users"]
+    rules:
+      - path_prefix: "/"
+        allowed_groups: ["simplelog-users"]
