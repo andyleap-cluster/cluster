@@ -1,0 +1,22 @@
+# Node-scoped Pod watch for the agent's log metadata enrichment.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: simplelog-agent
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: simplelog-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: simplelog-agent
+subjects:
+  - kind: ServiceAccount
+    name: simplelog-agent
+    namespace: simplelog

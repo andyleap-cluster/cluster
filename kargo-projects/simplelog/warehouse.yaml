@@ -1,0 +1,24 @@
+apiVersion: kargo.akuity.io/v1alpha1
+kind: Warehouse
+metadata:
+  name: simplelog
+  namespace: kargo-simplelog
+spec:
+  subscriptions:
+    # GoReleaser builds and tags both images identically per release, so they
+    # advance together. Both are pinned to the same tag in the kustomization.
+    - image:
+        repoURL: ghcr.io/andyleap/simplelog-manager
+        imageSelectionStrategy: SemVer
+        semverConstraint: ">=0.1.0 <1.0.0"
+        strictSemvers: true
+    - image:
+        repoURL: ghcr.io/andyleap/simplelog-agent
+        imageSelectionStrategy: SemVer
+        semverConstraint: ">=0.1.0 <1.0.0"
+        strictSemvers: true
+    - git:
+        repoURL: https://github.com/andyleap-cluster/cluster.git
+        branch: master
+        commitSelectionStrategy: NewestFromBranch
+        strictSemvers: false

@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: simplelog
+
+resources:
+  - serviceaccount.yaml
+  - rbac.yaml
+  - manager-config.yaml
+  - manager-statefulset.yaml
+  - manager-service.yaml
+  - agent-daemonset.yaml
+  - middleware.yaml
+  - tinyoauth-policy.yaml
+  - httproute.yaml
+
+# Kargo's kargo-simplelog:main Stage rewrites images.{0,1}.newTag on each
+# promotion. GoReleaser tags both images identically per release, so the
+# Warehouse pins them to the same version.
+#
+# The simplelog-s3 Secret (S3 credentials) and the tinyoauth-app-simplelog
+# ConfigMap (OIDC client_id) live in Terraform, not here, so this kustomization
+# intentionally does not include them.
+images:
+  - name: ghcr.io/andyleap/simplelog-manager
+    newTag: v0.1.0
+  - name: ghcr.io/andyleap/simplelog-agent
+    newTag: v0.1.0

@@ -1,0 +1,23 @@
+# Headless Service: stable DNS for the single manager replica. Serves as the
+# StatefulSet's governing service, the agents' ingest target (port 9000), and
+# the HTTPRoute backend for the query UI (port 8080).
+apiVersion: v1
+kind: Service
+metadata:
+  name: simplelog-manager
+  namespace: simplelog
+  labels:
+    app.kubernetes.io/name: simplelog-manager
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: simplelog-manager
+  ports:
+    - name: ingest
+      port: 9000
+      targetPort: ingest
+      protocol: TCP
+    - name: http
+      port: 8080
+      targetPort: http
+      protocol: TCP
