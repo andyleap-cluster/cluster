@@ -1,0 +1,85 @@
+# simplelog manager: single-replica StatefulSet. No PVC — local disk is an
+# emptyDir scratch/cache and S3 is the only durable store; the catalog is
+# rebuilt from S3 on startup.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: simplelog-manager
+  namespace: simplelog
+  labels:
+    app.kubernetes.io/name: simplelog-manager
+spec:
+  serviceName: simplelog-manager
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: simplelog-manager
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: simplelog-manager
+      # Opt this pod out of ingestion so the manager's own logs are never tailed.
+      annotations:
+        simplelog.io/ingest: "false"
+    spec:
+      # Generous grace period so SIGTERM can seal + upload the open segment.
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        # fsGroup so the non-root process can write the emptyDir scratch at /data.
+        fsGroup: 65532
+      containers:
+        - name: manager
+          image: ghcr.io/andyleap/simplelog-manager:v0.1.0
+          args: ["-base-dir=/data"]
+          ports:
+            - name: ingest
+              containerPort: 9000
+              protocol: TCP
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: SL_MANAGER_ID
+              value: "mgr1"
+            - name: SL_SEG_BYTES
+              value: "67108864" # 64 MiB
+            - name: SL_SEG_AGE
+              value: "5m" # also bounds agent hold time
+            - name: SL_CACHE_BYTES
+              value: "2147483648" # 2 GiB
+          envFrom:
+            # Non-secret S3 settings (bucket/domain/region/protocol/pathStyle).
+            - configMapRef:
+                name: simplelog-s3-config
+            # SL_S3_ACCESS_KEY / SL_S3_SECRET_KEY (Terraform-managed).
+            - secretRef:
+                name: simplelog-s3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        # emptyDir: ephemeral scratch/cache/catalog. Lost on reschedule and
+        # rebuilt from S3 by the manager on startup.
+        - name: data
+          emptyDir:
+            sizeLimit: 4Gi
