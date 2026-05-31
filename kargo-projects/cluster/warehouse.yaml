@@ -12,3 +12,7 @@ spec:
         branch: master
         commitSelectionStrategy: NewestFromBranch
         strictSemvers: false
+        # Only build new Freight when the files this pipeline mirrors change.
+        includePaths:
+          - cluster/cluster.yaml
+          - cluster/kustomization.yaml
