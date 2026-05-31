@@ -22,3 +22,7 @@ spec:
         branch: master
         commitSelectionStrategy: NewestFromBranch
         strictSemvers: false
+        # Only build new Freight when this app's manifests change.
+        includePaths:
+          - cluster/cert-manager-webhook-linode.yaml
+          - cert-manager-webhook-linode
