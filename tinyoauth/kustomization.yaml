@@ -15,4 +15,4 @@ resources:
 # Terraform, not here, so this kustomization intentionally does not include it.
 images:
   - name: ghcr.io/andyleap/tinyoauth
-    newTag: 0.1.0
+    newTag: 0.2.0
