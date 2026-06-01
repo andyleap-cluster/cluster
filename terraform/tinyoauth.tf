@@ -13,9 +13,14 @@ resource "random_bytes" "tinyoauth_cookie_secret" {
   length = 32
 }
 
-# Injects TINYOAUTH_COOKIE_SECRET into the tinyoauth Deployment via envFrom.
-# The config.yaml ConfigMap (in git) intentionally omits cookie_secret;
-# TinyOAuth's applyEnvFallbacks fills it from this env var at startup.
+# Injects runtime env into the tinyoauth Deployment via envFrom. The config.yaml
+# ConfigMap (in git) intentionally omits these; TinyOAuth's applyEnvFallbacks
+# fills each empty field from its TINYOAUTH_<FIELD> env var at startup.
+#
+#   TINYOAUTH_COOKIE_SECRET   -> session encryption key (random, above)
+#   TINYOAUTH_ADMIN_CLIENT_ID -> OIDC client for the /debug self-login page;
+#                                Pocket ID's auto-generated client id, which
+#                                can't be hardcoded in git (see tinyoauth-oidc.tf).
 resource "kubernetes_secret" "tinyoauth_secret" {
   metadata {
     name      = "tinyoauth-secret"
@@ -23,6 +28,7 @@ resource "kubernetes_secret" "tinyoauth_secret" {
   }
 
   data = {
-    TINYOAUTH_COOKIE_SECRET = random_bytes.tinyoauth_cookie_secret.hex
+    TINYOAUTH_COOKIE_SECRET   = random_bytes.tinyoauth_cookie_secret.hex
+    TINYOAUTH_ADMIN_CLIENT_ID = pocketid_client.tinyoauth_debug.id
   }
 }
