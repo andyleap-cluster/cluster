@@ -6,7 +6,7 @@
 # from live, so this master value only matters as a fallback for
 # out-of-Kargo renders (e.g. helm template locally).
 image:
-  tag: v3.7.6
+  tag: 3.7.7
 
 # Deployment configuration
 deployment:
